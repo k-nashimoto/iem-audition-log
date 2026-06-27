@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>試聴ログ</title>
+<meta name="theme-color" content="#0d1014">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="試聴ログ">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Crect width='180' height='180' rx='40' fill='%230d1014'/%3E%3Ccircle cx='90' cy='90' r='46' fill='none' stroke='%23c9a86a' stroke-width='6'/%3E%3Ccircle cx='90' cy='90' r='10' fill='%239fb0c4'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0d1014;--bg2:#11151b;--card:#161b22;--card2:#1b212a;
+    --line:#272e38;--line2:#333c48;
+    --txt:#dfe4ec;--txt2:#99a2af;--txt3:#6b7480;
+    --gold:#c9a86a;--steel:#9fb0c4;--cyan:#7fc7d4;--caution:#d8a35e;--bad:#c97a72;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Roboto Mono",monospace;
+    --jp:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;background:var(--bg);}
+  body{font-family:var(--jp);color:var(--txt);line-height:1.6;max-width:680px;margin:0 auto;
+    padding:0 0 72px;background:radial-gradient(120% 60% at 50% -10%,#181f29 0%,var(--bg) 60%);min-height:100vh;}
+
+  header{position:sticky;top:0;z-index:10;background:rgba(13,16,20,.88);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);padding:14px 16px 12px;padding-top:max(14px,env(safe-area-inset-top));}
+  .h-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .h-title{font-size:17px;font-weight:700;letter-spacing:.02em;}
+  .h-title .sub{display:block;font-size:10.5px;font-weight:500;color:var(--txt3);letter-spacing:.1em;margin-top:2px;}
+  .h-actions{display:flex;gap:7px;flex:none;}
+  .icon-btn{font-family:var(--mono);font-size:10.5px;color:var(--txt3);background:transparent;
+    border:1px solid var(--line2);border-radius:7px;padding:7px 9px;cursor:pointer;}
+  .icon-btn:active{background:var(--card2);}
+  .back{font-family:var(--mono);font-size:12px;color:var(--steel);background:transparent;border:none;
+    cursor:pointer;padding:6px 2px;display:flex;align-items:center;gap:5px;}
+
+  .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
+  .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
+  .meter-fill{height:100%;width:0;background:linear-gradient(90deg,var(--steel),var(--gold));transition:width .35s ease;}
+  .meter-num{font-family:var(--mono);font-size:11px;color:var(--txt2);flex:none;letter-spacing:.04em;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* List */
+  .btn-new{display:block;width:calc(100% - 32px);margin:16px;padding:15px;border-radius:12px;
+    background:linear-gradient(180deg,#1d2530,#161b22);border:1px solid var(--line2);
+    color:var(--txt);font-family:var(--jp);font-size:14.5px;font-weight:700;cursor:pointer;letter-spacing:.02em;}
+  .btn-new:active{background:var(--card2);}
+  .btn-new b{color:var(--gold);margin-right:6px;}
+  .empty{margin:30px 22px;color:var(--txt3);font-size:13px;text-align:center;line-height:1.9;}
+  .session{margin:0 16px 11px;border:1px solid var(--line);border-radius:13px;background:var(--card);
+    display:flex;align-items:stretch;overflow:hidden;}
+  .session-main{flex:1;min-width:0;padding:13px 14px;cursor:pointer;}
+  .session-main:active{background:var(--card2);}
+  .session-iem{font-size:15px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .session-meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
+  .session-date{font-family:var(--mono);font-size:11px;color:var(--txt2);}
+  .session-src{font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .session-stat{margin-top:8px;display:flex;align-items:center;gap:9px;}
+  .mini-bar{flex:1;max-width:130px;height:3px;background:var(--line);border-radius:99px;overflow:hidden;}
+  .mini-fill{height:100%;background:linear-gradient(90deg,var(--steel),var(--gold));}
+  .mini-num{font-family:var(--mono);font-size:10.5px;color:var(--txt3);}
+  .mini-num .g{color:var(--gold);}
+  .session-del{flex:none;width:46px;border:none;border-left:1px solid var(--line);background:transparent;
+    color:var(--txt3);font-size:16px;cursor:pointer;}
+  .session-del:active{background:rgba(201,122,114,.12);color:var(--bad);}
+
+  /* Detail session header */
+  .sess-edit{margin:14px 16px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:12px 14px;}
+  .field{display:flex;align-items:center;gap:10px;margin:6px 0;}
+  .field label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--txt3);width:52px;flex:none;}
+  .field input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
+    color:var(--txt);font-family:var(--jp);font-size:14px;padding:9px 10px;}
+  .field input:focus{outline:none;border-color:var(--steel);}
+  .field input[type=date]{font-family:var(--mono);}
+
+  details.guide{margin:12px 16px 4px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);overflow:hidden;}
+  details.guide summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:8px;}
+  details.guide summary::-webkit-details-marker{display:none;}
+  details.guide summary .tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--cyan);
+    border:1px solid var(--line2);border-radius:5px;padding:3px 7px;}
+  details.guide summary .t{font-size:13px;font-weight:600;}
+  details.guide summary .chev{margin-left:auto;color:var(--txt3);font-family:var(--mono);font-size:11px;}
+  details.guide[open] summary .chev{transform:rotate(90deg);}
+  details.guide ul{margin:0;padding:4px 16px 13px 30px;}
+  details.guide li{font-size:12.5px;color:var(--txt2);margin:5px 0;}
+  details.guide li b{color:var(--txt);font-weight:600;}
+
+  .cat{margin:16px 16px 0;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden;}
+  .cat-h{display:flex;align-items:flex-start;gap:12px;padding:14px 15px 12px;}
+  .cat-no{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--txt3);line-height:1;flex:none;padding-top:2px;}
+  .cat-meta{flex:1;min-width:0;}
+  .cat-title{font-size:15px;font-weight:700;}
+  .pri{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;border-radius:5px;
+    padding:3px 6px;margin-left:7px;vertical-align:1px;border:1px solid;}
+  .pri.top{color:var(--gold);border-color:#5a4a2a;background:rgba(201,168,106,.08);}
+  .pri.sens{color:var(--caution);border-color:#5c452a;background:rgba(216,163,94,.08);}
+  .pri.axis{color:var(--cyan);border-color:#2c4a52;background:rgba(127,199,212,.08);}
+  .pri.seal{color:var(--txt2);border-color:var(--line2);background:rgba(159,176,196,.06);}
+  .point{font-size:12px;color:var(--txt2);margin-top:6px;border-left:2px solid var(--line2);padding-left:9px;}
+  .point::before{content:"確認 ";font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt3);}
+
+  .trk{border-top:1px solid var(--line);padding:11px 15px 12px;}
+  .trk-row{display:flex;align-items:flex-start;gap:11px;}
+  .trk-info{flex:1;min-width:0;}
+  .trk-t{font-size:13.5px;font-weight:600;}
+  .trk-a{font-size:11.5px;color:var(--txt3);margin-top:2px;}
+  .rate{display:flex;gap:5px;flex:none;}
+  .rb{width:34px;height:34px;border-radius:8px;border:1px solid var(--line2);background:var(--card2);
+    color:var(--txt3);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    line-height:1;transition:.12s;font-family:var(--mono);}
+  .rb:active{transform:scale(.92);}
+  .rb.on[data-r="◎"]{color:#101216;background:var(--gold);border-color:var(--gold);font-weight:700;}
+  .rb.on[data-r="○"]{color:#101216;background:var(--steel);border-color:var(--steel);}
+  .rb.on[data-r="△"]{color:#101216;background:var(--caution);border-color:var(--caution);}
+  .rb.on[data-r="✕"]{color:#fff;background:var(--bad);border-color:var(--bad);}
+  .trk.done{background:linear-gradient(90deg,rgba(201,168,106,.05),transparent 40%);}
+  .memo-toggle{margin-top:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--txt3);
+    background:transparent;border:none;cursor:pointer;padding:2px 0;}
+  .memo-toggle:active{color:var(--txt);}
+  .memo{display:none;margin-top:7px;}
+  .memo.open{display:block;}
+  .memo textarea{width:100%;min-height:46px;resize:vertical;font-family:var(--jp);font-size:13px;color:var(--txt);
+    background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}
+  .memo textarea:focus{outline:none;border-color:var(--steel);}
+
+  /* Modal */
+  .modal{position:fixed;inset:0;background:rgba(6,8,11,.7);backdrop-filter:blur(4px);z-index:30;
+    display:none;align-items:flex-end;justify-content:center;}
+  .modal.open{display:flex;}
+  .modal-card{width:100%;max-width:680px;background:var(--bg2);border-top:1px solid var(--line2);
+    border-radius:18px 18px 0 0;padding:20px 18px;padding-bottom:max(20px,env(safe-area-inset-bottom));}
+  .modal-card h2{font-size:16px;margin:0 0 14px;font-weight:700;}
+  .modal-card .field label{width:56px;}
+  .modal-btns{display:flex;gap:10px;margin-top:18px;}
+  .btn-primary{flex:1;padding:13px;border-radius:10px;border:1px solid var(--gold);background:var(--gold);
+    color:#101216;font-family:var(--jp);font-size:14px;font-weight:700;cursor:pointer;}
+  .btn-ghost{flex:none;padding:13px 18px;border-radius:10px;border:1px solid var(--line2);background:transparent;
+    color:var(--txt2);font-family:var(--jp);font-size:14px;cursor:pointer;}
+
+  footer{margin:22px 18px 0;font-size:11.5px;color:var(--txt3);line-height:1.7;}
+  footer b{color:var(--txt2);font-weight:600;}
+  .flash{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--card2);
+    border:1px solid var(--line2);color:var(--txt2);font-family:var(--mono);font-size:11px;padding:7px 13px;
+    border-radius:99px;opacity:0;transition:.25s;pointer-events:none;z-index:40;}
+  .flash.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
+  *:focus-visible{outline:2px solid var(--steel);outline-offset:2px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-top">
+    <div id="hLeft">
+      <div class="h-title">試聴ログ<span class="sub">AUDITION LOG · PERSONAL REFERENCE</span></div>
+    </div>
+    <div class="h-actions" id="hActions">
+      <button class="icon-btn" id="btnExport">書出</button>
+      <button class="icon-btn" id="btnImport">読込</button>
+    </div>
+  </div>
+  <div class="meter" id="detailMeter" style="display:none">
+    <div class="meter-bar"><div class="meter-fill" id="fill"></div></div>
+    <div class="meter-num" id="count">0 / 22</div>
+  </div>
+</header>
+
+<!-- LIST VIEW -->
+<div class="view active" id="viewList">
+  <button class="btn-new" id="btnNew"><b>＋</b>新規試聴を記録</button>
+  <div id="sessions"></div>
+  <footer>
+    記録はこの端末（ブラウザ）に保存されます。機種ごとに日付つきで残り、タップで再編集できます。<br>
+    端末変更やバックアップは右上の<b>「書出」</b>でJSON保存、<b>「読込」</b>で復元できます。
+  </footer>
+</div>
+
+<!-- DETAIL VIEW -->
+<div class="view" id="viewDetail">
+  <div style="padding:10px 16px 0"><button class="back" id="btnBack">‹ 一覧へ戻る</button></div>
+  <div class="sess-edit">
+    <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Noble Kronos"></div>
+    <div class="field"><label>日付</label><input type="date" id="fDate"></div>
+    <div class="field"><label>ソース</label><input type="text" id="fSrc" placeholder="例：Cayin N7+ / Class A / Sedna Crystal"></div>
+  </div>
+
+  <details class="guide">
+    <summary><span class="tag">STEP 0</span><span class="t">聴く前に</span><span class="chev">›</span></summary>
+    <ul>
+      <li>まず<b>深く安定したシール</b>を確保（浅いと低域・没入が痩せ、高域がピーキーに）。</li>
+      <li>ソースは<b>クラスA</b>基準。必要なら A↔AB を切替えて高域を比較。</li>
+      <li>音量は<b>数値でなく聴感で揃える</b>。</li>
+      <li><b>01 → 02 を最優先</b>。03〜07 は各1曲を手早く。</li>
+      <li>聴き慣れた<b>自分の曲も1〜2曲混ぜる</b>。</li>
+    </ul>
+  </details>
+
+  <main id="cats"></main>
+  <footer>
+    ◎=理想 / ○=良 / △=惜しい / ✕=合わない。評価とメモは自動保存されます。<br>
+    VE10との艶A/Bは同曲・同条件で。アッテネーターは付けたまま、音量は聴感合わせ。
+  </footer>
+</div>
+
+<!-- NEW SESSION MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <h2>新規試聴を記録</h2>
+    <div class="field"><label>機種名</label><input type="text" id="mIem" placeholder="例：Noble Kronos"></div>
+    <div class="field"><label>日付</label><input type="date" id="mDate"></div>
+    <div class="field"><label>ソース</label><input type="text" id="mSrc" placeholder="例：Cayin N7+ / Class A"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" id="mStart">開始する</button>
+      <button class="btn-ghost" id="mCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="application/json" style="display:none">
+<div class="flash" id="flash">保存しました</div>
+
+<script>
+const CATS = [
+  {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
+   point:"サブベースが痩せず地に足が付くか／無音時にヒス・低域漏れが無いか。",
+   tracks:[{t:"Billie Eilish — bad guy",a:"剥き出しのサブベース＋クリック。シールが甘いと真っ先に低域が痩せる（深いシールが決まるまで調整）"}]},
+  {no:"01",title:"ボーカルの艶・生々しさ",pri:["最重視","top"],
+   point:"声に体温・色気・口の動きの生々しさがあり、薄く冷たくならないか。",
+   tracks:[
+    {t:"宇多田ヒカル — First Love",a:"親密な女性ボーカルの息遣いと色気"},
+    {t:"Uru — プロローグ",a:"音数少なめの透明な女性ボーカル。声の質感・色気が痩せないか"},
+    {t:"Norah Jones — Don't Know Why",a:"温かく親密な声のリファレンス。倍音と艶"}]},
+  {no:"02",title:"キラキラ vs 刺さり",pri:["重要・感度","sens"],
+   point:"きらめき・空気感がありつつ刺さらないか。10〜20分で疲労が出ないか。",
+   tracks:[
+    {t:"IVE — I AM",a:"明るく硬めのK-popマスタリング＝刺さりの負荷源"},
+    {t:"Ado — 踊",a:"高密度で攻めたJ-pop。サ行と高域の刺激"},
+    {t:"LE SSERAFIM — EASY",a:"シャープなハイハットとサ行。高域の刺激耐性の追試"}]},
+  {no:"03",title:"締まったグルーヴ低域",pri:null,
+   point:"締まってグルーヴを駆動するか、出すぎ/痩せず、アタックと減衰の輪郭。",
+   tracks:[
+    {t:"Daft Punk — Get Lucky",a:"タイトで踊れる低域のノリ、アタックと減衰の質感"},
+    {t:"椎名林檎 — 丸ノ内サディスティック",a:"ウッドベースの弾みと実体感"},
+    {t:"Vaundy — 怪獣の花唄",a:"締まって弾むベースの男性Vo.J-pop。グルーヴの駆動力と低域の輪郭"}]},
+  {no:"04",title:"包まれる没入・空間スケール",pri:["決定軸","axis"],
+   point:"音が前方だけでなく頭の周囲・上下・後方に回り込み、ホールにいる没入が出るか。",
+   tracks:[
+    {t:"久石譲 — あの夏へ",a:"管弦の空間と高揚"},
+    {t:"John Williams — Hedwig's Theme",a:"ハリー・ポッター。繊細な管弦が周囲に広がる空間と立体感"},
+    {t:"John Williams — Across the Stars",a:"スター・ウォーズ／愛のテーマ。壮大な弦楽が頭を包み込む没入"}]},
+  {no:"05",title:"生音感（実在感・空気・余韻）",pri:null,
+   point:"楽器がその空間で鳴り、倍音と余韻が自然に減衰していく実在感。",
+   tracks:[
+    {t:"秦基博 — ひまわりの約束",a:"アコギと声の胴鳴り・倍音・余韻（J-pop）"},
+    {t:"John Williams — Schindler's List Theme",a:"パールマン独奏。Vnの松脂感・弓の擦れ・ホールの空気"},
+    {t:"John Williams — Marion's Theme",a:"インディ・ジョーンズ。管弦の各楽器の実体感と余韻"}]},
+  {no:"06",title:"ダイナミクス・強奏",pri:null,
+   point:"強奏で圧縮されず physical に伸びるか、混雑しても崩れず分離を保つか。",
+   tracks:[
+    {t:"Hans Zimmer — Mombasa",a:"インセプション。加速するパーカッションと管弦の爆発力"},
+    {t:"R.シュトラウス — ツァラトゥストラ 冒頭",a:"静寂→金管・オルガン・ティンパニの強奏。DRの基準"},
+    {t:"Klaus Badelt — He's a Pirate",a:"パイレーツ・オブ・カリビアン。疾走する弦・金管・打楽器の畳みかけ"}]},
+  {no:"07",title:"解像・分離・一体感",pri:null,
+   point:"各音が分離しつつ、帯域の継ぎ目なく一体で鳴るか。混雑で潰れないか。",
+   tracks:[
+    {t:"米津玄師 — KICK BACK",a:"高密度・多帯域でのまとまり"},
+    {t:"Aimer — 残響散歌",a:"高密度な女性Vo.J-pop。声と多層伴奏の分離・一体感"},
+    {t:"John Williams — The Imperial March",a:"スター・ウォーズ。大編成の金管・弦・打楽器の定位と分離の基準"}]},
+];
+const RATES=["◎","○","△","✕"];
+const TOTAL=CATS.reduce((s,c)=>s+c.tracks.length,0);
+const KEY="audition-log-v1";
+
+let store={sessions:[],activeId:null};
+
+function loadStore(){
+  try{ const raw=localStorage.getItem(KEY); if(raw) store=JSON.parse(raw); }catch(e){}
+  if(!store.sessions) store.sessions=[];
+}
+let saveTimer=null;
+function persist(flash){
+  if(saveTimer)clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){}
+    if(flash) showFlash();
+  },200);
+}
+function showFlash(msg){
+  const f=document.getElementById("flash"); if(msg)f.textContent=msg;
+  f.classList.add("show"); clearTimeout(f._t); f._t=setTimeout(()=>f.classList.remove("show"),900);
+}
+function active(){ return store.sessions.find(s=>s.id===store.activeId); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function tid(no,i){ return no+"-"+i; }
+function progress(s){ return Object.keys(s.ratings||{}).length; }
+function goldCount(s){ return Object.values(s.ratings||{}).filter(r=>r==="◎").length; }
+
+/* ---------- VIEWS ---------- */
+function switchView(v){
+  document.getElementById("viewList").classList.toggle("active",v==="list");
+  document.getElementById("viewDetail").classList.toggle("active",v==="detail");
+  document.getElementById("detailMeter").style.display = v==="detail"?"flex":"none";
+  document.getElementById("hActions").style.display = v==="list"?"flex":"none";
+  document.getElementById("hLeft").innerHTML = v==="list"
+    ? '<div class="h-title">試聴ログ<span class="sub">AUDITION LOG · PERSONAL REFERENCE</span></div>'
+    : '<div class="h-title">試聴チェック<span class="sub">N7+ / CLASS A · REFERENCE</span></div>';
+  window.scrollTo(0,0);
+}
+
+function renderList(){
+  const wrap=document.getElementById("sessions");
+  const list=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")|| (b.createdAt-a.createdAt));
+  if(list.length===0){
+    wrap.innerHTML='<div class="empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>';
+    return;
+  }
+  wrap.innerHTML=list.map(s=>{
+    const p=progress(s), g=goldCount(s);
+    return `<div class="session">
+      <div class="session-main" data-open="${s.id}">
+        <div class="session-iem">${esc(s.iem||"(機種名なし)")}</div>
+        <div class="session-meta">
+          <span class="session-date">${s.date||""}</span>
+          ${s.source?`<span class="session-src">${esc(s.source)}</span>`:""}
+        </div>
+        <div class="session-stat">
+          <div class="mini-bar"><div class="mini-fill" style="width:${p/TOTAL*100}%"></div></div>
+          <span class="mini-num">${p}/${TOTAL}${g?` · <span class="g">◎${g}</span>`:""}</span>
+        </div>
+      </div>
+      <button class="session-del" data-del="${s.id}" aria-label="削除">🗑</button>
+    </div>`;
+  }).join("");
+  wrap.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>openSession(el.dataset.open));
+  wrap.querySelectorAll("[data-del]").forEach(el=>el.onclick=()=>{
+    const s=store.sessions.find(x=>x.id===el.dataset.del);
+    if(confirm(`「${s?s.iem:""}」の記録を削除しますか？`)){
+      store.sessions=store.sessions.filter(x=>x.id!==el.dataset.del); persist(true); renderList();
+    }
+  });
+}
+
+function openSession(id){
+  store.activeId=id; persist();
+  const s=active(); if(!s)return;
+  document.getElementById("fIem").value=s.iem||"";
+  document.getElementById("fDate").value=s.date||today();
+  document.getElementById("fSrc").value=s.source||"";
+  renderCats(); updateMeter(); switchView("detail");
+}
+
+function renderCats(){
+  const s=active(); if(!s)return;
+  s.ratings=s.ratings||{}; s.notes=s.notes||{}; s.openMemo=s.openMemo||{};
+  const host=document.getElementById("cats"); host.innerHTML="";
+  CATS.forEach(cat=>{
+    const sec=document.createElement("section"); sec.className="cat";
+    let pri=cat.pri?`<span class="pri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
+    let html=`<div class="cat-h"><div class="cat-no">${cat.no}</div>
+      <div class="cat-meta"><div class="cat-title">${cat.title}${pri}</div>
+      <div class="point">${cat.point}</div></div></div>`;
+    cat.tracks.forEach((trk,i)=>{
+      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id];
+      let chips=RATES.map(r=>`<button class="rb ${rated===r?'on':''}" data-r="${r}" data-id="${id}">${r}</button>`).join("");
+      html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
+        <div class="trk-row"><div class="trk-info"><div class="trk-t">${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
+        <div class="rate">${chips}</div></div>
+        <button class="memo-toggle" data-mid="${id}">${note?'✎ メモあり':'＋ メモ'}</button>
+        <div class="memo ${op?'open':''}" id="memo-${id}"><textarea data-nid="${id}" placeholder="気づいた点（艶・刺さり・空間 など）">${esc(note)}</textarea></div>
+      </div>`;
+    });
+    sec.innerHTML=html; host.appendChild(sec);
+  });
+  bindTracks();
+}
+
+function bindTracks(){
+  const s=active();
+  document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.id,r=b.dataset.r;
+    if(s.ratings[id]===r)delete s.ratings[id]; else s.ratings[id]=r;
+    persist(false);
+    const row=document.getElementById("row-"+id);
+    row.querySelectorAll(".rb").forEach(x=>x.classList.toggle("on",s.ratings[id]===x.dataset.r));
+    row.classList.toggle("done",!!s.ratings[id]); updateMeter();
+  });
+  document.querySelectorAll(".memo-toggle").forEach(t=>t.onclick=()=>{
+    const id=t.dataset.mid; s.openMemo[id]=!s.openMemo[id];
+    document.getElementById("memo-"+id).classList.toggle("open",s.openMemo[id]); persist(false);
+  });
+  document.querySelectorAll("textarea[data-nid]").forEach(ta=>{
+    ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value;
+      const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg)tg.textContent=ta.value?'✎ メモあり':'＋ メモ';
+      persist(false); };
+    ta.onblur=()=>persist(true);
+  });
+}
+
+function updateMeter(){
+  const s=active(); if(!s)return;
+  const p=progress(s);
+  document.getElementById("count").textContent=p+" / "+TOTAL;
+  document.getElementById("fill").style.width=(p/TOTAL*100)+"%";
+}
+
+/* session header edits */
+["fIem","fDate","fSrc"].forEach(idn=>{
+  const map={fIem:"iem",fDate:"date",fSrc:"source"};
+  document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
+  document.getElementById(idn).addEventListener("blur",()=>persist(true));
+});
+
+/* new session modal */
+const modal=document.getElementById("modal");
+document.getElementById("btnNew").onclick=()=>{
+  document.getElementById("mIem").value="";
+  document.getElementById("mDate").value=today();
+  document.getElementById("mSrc").value="Cayin N7+ / Class A";
+  modal.classList.add("open"); setTimeout(()=>document.getElementById("mIem").focus(),50);
+};
+document.getElementById("mCancel").onclick=()=>modal.classList.remove("open");
+modal.onclick=e=>{ if(e.target===modal) modal.classList.remove("open"); };
+document.getElementById("mStart").onclick=()=>{
+  const iem=document.getElementById("mIem").value.trim()||"(機種名なし)";
+  const s={id:"s"+Date.now(),iem,date:document.getElementById("mDate").value||today(),
+    source:document.getElementById("mSrc").value.trim(),createdAt:Date.now(),ratings:{},notes:{},openMemo:{}};
+  store.sessions.push(s); persist(true); modal.classList.remove("open"); openSession(s.id);
+};
+
+document.getElementById("btnBack").onclick=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); };
+
+/* export / import */
+document.getElementById("btnExport").onclick=()=>{
+  const blob=new Blob([JSON.stringify(store,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="audition-log-"+today()+".json"; a.click(); URL.revokeObjectURL(a.href);
+};
+document.getElementById("btnImport").onclick=()=>document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange=e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const rd=new FileReader();
+  rd.onload=()=>{ try{
+    const data=JSON.parse(rd.result); const inc=data.sessions||[];
+    const map={}; store.sessions.forEach(s=>map[s.id]=s); inc.forEach(s=>map[s.id]=s);
+    store.sessions=Object.values(map); persist(true); renderList(); showFlash("読込しました");
+  }catch(err){ alert("読込に失敗しました（JSON形式を確認してください）"); } };
+  rd.readAsText(file); e.target.value="";
+};
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* init */
+loadStore(); renderList(); switchView("list");
+</script>
+</body>
+</html>
