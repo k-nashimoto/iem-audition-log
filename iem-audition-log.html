@@ -33,8 +33,14 @@
   .icon-btn{font-family:var(--mono);font-size:10.5px;color:var(--txt3);background:transparent;
     border:1px solid var(--line2);border-radius:7px;padding:7px 9px;cursor:pointer;}
   .icon-btn:active{background:var(--card2);}
-  .back{font-family:var(--mono);font-size:12px;color:var(--steel);background:transparent;border:none;
-    cursor:pointer;padding:6px 2px;display:flex;align-items:center;gap:5px;}
+  .back{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--steel);
+    background:var(--card2);border:1px solid var(--line2);border-radius:8px;
+    cursor:pointer;padding:9px 14px;display:inline-flex;align-items:center;gap:6px;
+    transition:background .15s ease,border-color .15s ease;}
+  .back:hover{border-color:var(--steel);}
+  .back:active{background:var(--card);}
+  .back .ar{font-size:15px;line-height:1;}
+  .back-bottom{margin:4px 16px 8px;width:calc(100% - 32px);justify-content:center;padding:12px 14px;}
 
   .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
   .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
@@ -71,11 +77,25 @@
   /* Detail session header */
   .sess-edit{margin:14px 16px 4px;border:1px solid var(--line);border-radius:12px;background:var(--card);padding:12px 14px;}
   .field{display:flex;align-items:center;gap:10px;margin:6px 0;}
-  .field label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--txt3);width:52px;flex:none;}
+  .field label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--txt3);width:62px;flex:none;white-space:nowrap;}
   .field input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
     color:var(--txt);font-family:var(--jp);font-size:14px;padding:9px 10px;}
   .field input:focus{outline:none;border-color:var(--steel);}
   .field input[type=date]{font-family:var(--mono);}
+  .field select{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
+    color:var(--txt);font-family:var(--mono);font-size:14px;padding:9px 10px;-webkit-appearance:none;appearance:none;
+    background-image:linear-gradient(45deg,transparent 50%,var(--txt3) 50%),linear-gradient(135deg,var(--txt3) 50%,transparent 50%);
+    background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+  .field select:focus{outline:none;border-color:var(--steel);}
+  .seg{display:flex;flex:1;gap:6px;}
+  .seg-btn{flex:1;font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;color:var(--txt3);
+    background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:9px 0;cursor:pointer;transition:.12s;}
+  .seg-btn:active{transform:scale(.97);}
+  .seg-btn.on{color:#101216;background:var(--steel);border-color:var(--steel);font-weight:700;}
+  .conn-chip{font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--txt3);
+    border:1px solid var(--line2);border-radius:5px;padding:2px 6px;white-space:nowrap;}
+  .conn-chip.wireless{color:var(--cyan);border-color:#2c4a52;}
+  .conn-chip.wired{color:var(--steel);border-color:var(--line2);}
 
   details.guide{margin:12px 16px 4px;border:1px solid var(--line);border-radius:12px;background:var(--bg2);overflow:hidden;}
   details.guide summary{list-style:none;cursor:pointer;padding:11px 14px;display:flex;align-items:center;gap:8px;}
@@ -134,7 +154,7 @@
   .modal-card{width:100%;max-width:680px;background:var(--bg2);border-top:1px solid var(--line2);
     border-radius:18px 18px 0 0;padding:20px 18px;padding-bottom:max(20px,env(safe-area-inset-bottom));}
   .modal-card h2{font-size:16px;margin:0 0 14px;font-weight:700;}
-  .modal-card .field label{width:56px;}
+  .modal-card .field label{width:62px;}
   .modal-btns{display:flex;gap:10px;margin-top:18px;}
   .btn-primary{flex:1;padding:13px;border-radius:10px;border:1px solid var(--gold);background:var(--gold);
     color:#101216;font-family:var(--jp);font-size:14px;font-weight:700;cursor:pointer;}
@@ -241,11 +261,20 @@
 
 <!-- DETAIL VIEW -->
 <div class="view" id="viewDetail">
-  <div style="padding:10px 16px 0"><button class="back" id="btnBack">‹ 一覧へ戻る</button></div>
+  <div style="padding:10px 16px 0"><button class="back" id="btnBack"><span class="ar">‹</span> 一覧へ戻る</button></div>
   <div class="sess-edit">
     <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Noble Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="fDate"></div>
-    <div class="field"><label>ソース</label><input type="text" id="fSrc" placeholder="例：Cayin N7+ / Class A / Sedna Crystal"></div>
+    <div class="field"><label>ソース</label><input type="text" id="fSrc" placeholder="例：Cayin N7+ / Class A"></div>
+    <div class="field"><label>再生アプリ</label><input type="text" id="fApp" list="appList" placeholder="例：Apple Music"></div>
+    <div class="field"><label>接続</label>
+      <div class="seg" id="fConnSeg">
+        <button type="button" class="seg-btn" data-conn="wired">有線</button>
+        <button type="button" class="seg-btn" data-conn="wireless">無線</button>
+      </div>
+    </div>
+    <div class="field" id="fCodecField" style="display:none"><label>コーデック</label><select id="fCodec"></select></div>
+    <div class="field" id="fCableField" style="display:none"><label>ケーブル</label><input type="text" id="fCable" placeholder="例：Effect Audio A×C 4.4mm"></div>
   </div>
 
   <details class="guide">
@@ -264,11 +293,12 @@
     ◎=理想 / ○=良 / △=惜しい / ✕=合わない。評価とメモは自動保存されます。<br>
     VE10との艶A/Bは同曲・同条件で。アッテネーターは付けたまま、音量は聴感合わせ。
   </footer>
+  <button class="back back-bottom" id="btnBackBottom"><span class="ar">‹</span> 一覧へ戻る</button>
 </div>
 
 <!-- COMPARE VIEW -->
 <div class="view" id="viewCompare">
-  <div style="padding:10px 16px 0"><button class="back" id="btnBackCmp">‹ 一覧へ戻る</button></div>
+  <div style="padding:10px 16px 0"><button class="back" id="btnBackCmp"><span class="ar">‹</span> 一覧へ戻る</button></div>
   <div class="cmp-actions">
     <span class="lbl" id="cmpInfo">0 機種選択中</span>
     <button class="small-btn" id="cmpSelAll">全選択</button>
@@ -289,6 +319,15 @@
     <div class="field"><label>機種名</label><input type="text" id="mIem" placeholder="例：Noble Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="mDate"></div>
     <div class="field"><label>ソース</label><input type="text" id="mSrc" placeholder="例：Cayin N7+ / Class A"></div>
+    <div class="field"><label>再生アプリ</label><input type="text" id="mApp" list="appList" placeholder="例：Apple Music"></div>
+    <div class="field"><label>接続</label>
+      <div class="seg" id="mConnSeg">
+        <button type="button" class="seg-btn" data-conn="wired">有線</button>
+        <button type="button" class="seg-btn" data-conn="wireless">無線</button>
+      </div>
+    </div>
+    <div class="field" id="mCodecField" style="display:none"><label>コーデック</label><select id="mCodec"></select></div>
+    <div class="field" id="mCableField" style="display:none"><label>ケーブル</label><input type="text" id="mCable" placeholder="例：Effect Audio A×C 4.4mm"></div>
     <div class="modal-btns">
       <button class="btn-primary" id="mStart">開始する</button>
       <button class="btn-ghost" id="mCancel">取消</button>
@@ -297,6 +336,7 @@
 </div>
 
 <input type="file" id="fileInput" accept="application/json" style="display:none">
+<datalist id="appList"></datalist>
 <div class="flash" id="flash">保存しました</div>
 
 <script>
@@ -350,6 +390,10 @@ const CATS = [
 ];
 const RATES=["◎","○","△","✕"];
 const SCORE={"◎":4,"○":3,"△":2,"✕":1};
+/* 一般的なBluetoothオーディオコーデック（高音質→標準の順） */
+const CODECS=["LDAC","LHDC","aptX Lossless","aptX Adaptive","aptX HD","aptX","AAC","SBC","LC3"];
+/* 主な音楽再生アプリ（入力候補） */
+const APPS=["Apple Music","Qobuz","Amazon Music","TIDAL","Spotify","YouTube Music","mora qualitas","ローカル/DAP内"];
 const TOTAL=CATS.reduce((s,c)=>s+c.tracks.length,0);
 const KEY="audition-log-v1";
 
@@ -377,6 +421,28 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function tid(no,i){ return no+"-"+i; }
 function progress(s){ return Object.keys(s.ratings||{}).length; }
 function goldCount(s){ return Object.values(s.ratings||{}).filter(r=>r==="◎").length; }
+/* 接続方式の表示テキスト（無線=コーデック / 有線=ケーブル） */
+function connText(s){
+  if(s.conn==="wireless") return s.codec?("無線 · "+s.codec):"無線";
+  if(s.conn==="wired") return s.cable?("有線 · "+s.cable):"有線";
+  return "";
+}
+/* コーデックselectを生成 */
+function fillCodec(sel,val){
+  sel.innerHTML='<option value="">— 選択 —</option>'+CODECS.map(c=>`<option value="${c}">${c}</option>`).join("");
+  sel.value=val||"";
+}
+/* 接続セグメント＋条件付きフィールドの表示切替（prefix: "m" or "f"） */
+function setConn(prefix,conn){
+  const seg=document.getElementById(prefix+"ConnSeg");
+  seg.querySelectorAll(".seg-btn").forEach(b=>b.classList.toggle("on",b.dataset.conn===conn));
+  document.getElementById(prefix+"CodecField").style.display = conn==="wireless"?"flex":"none";
+  document.getElementById(prefix+"CableField").style.display = conn==="wired"?"flex":"none";
+}
+function getConn(prefix){
+  const on=document.getElementById(prefix+"ConnSeg").querySelector(".seg-btn.on");
+  return on?on.dataset.conn:"";
+}
 
 /* ---------- VIEWS ---------- */
 function switchView(v){
@@ -410,6 +476,10 @@ function renderList(){
           <span class="session-date">${s.date||""}</span>
           ${s.source?`<span class="session-src">${esc(s.source)}</span>`:""}
         </div>
+        ${(s.app||connText(s))?`<div class="session-meta">
+          ${s.app?`<span class="session-src">▶ ${esc(s.app)}</span>`:""}
+          ${connText(s)?`<span class="conn-chip ${s.conn}">${esc(connText(s))}</span>`:""}
+        </div>`:""}
         <div class="session-stat">
           <div class="mini-bar"><div class="mini-fill" style="width:${p/TOTAL*100}%"></div></div>
           <span class="mini-num">${p}/${TOTAL}${g?` · <span class="g">◎${g}</span>`:""}</span>
@@ -436,6 +506,10 @@ function openSession(id){
   document.getElementById("fIem").value=s.iem||"";
   document.getElementById("fDate").value=s.date||today();
   document.getElementById("fSrc").value=s.source||"";
+  document.getElementById("fApp").value=s.app||"";
+  fillCodec(document.getElementById("fCodec"),s.codec);
+  document.getElementById("fCable").value=s.cable||"";
+  setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
 }
 
@@ -494,10 +568,20 @@ function updateMeter(){
 }
 
 /* session header edits */
-["fIem","fDate","fSrc"].forEach(idn=>{
-  const map={fIem:"iem",fDate:"date",fSrc:"source"};
+["fIem","fDate","fSrc","fApp","fCable"].forEach(idn=>{
+  const map={fIem:"iem",fDate:"date",fSrc:"source",fApp:"app",fCable:"cable"};
   document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
   document.getElementById(idn).addEventListener("blur",()=>persist(true));
+});
+document.getElementById("fCodec").addEventListener("change",e=>{ const s=active(); if(s){ s.codec=e.target.value; persist(true);} });
+document.getElementById("fConnSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".seg-btn"); if(!b)return;
+  const s=active(); if(!s)return;
+  const conn=b.dataset.conn;
+  s.conn=conn;
+  if(conn==="wired"){ s.codec=""; document.getElementById("fCodec").value=""; }
+  else { s.cable=""; document.getElementById("fCable").value=""; }
+  setConn("f",conn); persist(true);
 });
 
 /* new session modal */
@@ -506,18 +590,33 @@ document.getElementById("btnNew").onclick=()=>{
   document.getElementById("mIem").value="";
   document.getElementById("mDate").value=today();
   document.getElementById("mSrc").value="Cayin N7+ / Class A";
+  document.getElementById("mApp").value="Apple Music";
+  document.getElementById("mCable").value="";
+  fillCodec(document.getElementById("mCodec"),"");
+  setConn("m","wired"); /* 既定は有線 */
   modal.classList.add("open"); setTimeout(()=>document.getElementById("mIem").focus(),50);
 };
+document.getElementById("mConnSeg").addEventListener("click",e=>{
+  const b=e.target.closest(".seg-btn"); if(b) setConn("m",b.dataset.conn);
+});
 document.getElementById("mCancel").onclick=()=>modal.classList.remove("open");
 modal.onclick=e=>{ if(e.target===modal) modal.classList.remove("open"); };
 document.getElementById("mStart").onclick=()=>{
   const iem=document.getElementById("mIem").value.trim()||"(機種名なし)";
+  const conn=getConn("m");
   const s={id:"s"+Date.now(),iem,date:document.getElementById("mDate").value||today(),
-    source:document.getElementById("mSrc").value.trim(),createdAt:Date.now(),ratings:{},notes:{},openMemo:{}};
+    source:document.getElementById("mSrc").value.trim(),
+    app:document.getElementById("mApp").value.trim(),
+    conn,
+    codec:conn==="wireless"?document.getElementById("mCodec").value:"",
+    cable:conn==="wired"?document.getElementById("mCable").value.trim():"",
+    createdAt:Date.now(),ratings:{},notes:{},openMemo:{}};
   store.sessions.push(s); persist(true); modal.classList.remove("open"); openSession(s.id);
 };
 
-document.getElementById("btnBack").onclick=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); };
+const backToList=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); window.scrollTo(0,0); };
+document.getElementById("btnBack").onclick=backToList;
+document.getElementById("btnBackBottom").onclick=backToList;
 
 /* compare */
 function tone(avg){
@@ -642,6 +741,7 @@ document.getElementById("fileInput").onchange=e=>{
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
 /* init */
+document.getElementById("appList").innerHTML=APPS.map(a=>`<option value="${esc(a)}"></option>`).join("");
 loadStore(); renderList(); switchView("list");
 </script>
 </body>
