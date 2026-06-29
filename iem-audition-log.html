@@ -143,7 +143,7 @@
   .memo-toggle:active{color:var(--txt);}
   .memo{display:none;margin-top:7px;}
   .memo.open{display:block;}
-  .memo textarea{width:100%;min-height:46px;resize:vertical;font-family:var(--jp);font-size:13px;color:var(--txt);
+  .memo textarea{width:100%;min-height:46px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:13px;color:var(--txt);
     background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}
   .memo textarea:focus{outline:none;border-color:var(--steel);}
 
@@ -511,6 +511,11 @@ function openSession(id){
   document.getElementById("fCable").value=s.cable||"";
   setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
+  growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
+}
+/* 表示中の開いたメモtextareaを内容の高さに合わせる */
+function growOpenMemos(){
+  document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
 }
 
 function renderCats(){
@@ -524,7 +529,7 @@ function renderCats(){
       <div class="cat-meta"><div class="cat-title">${cat.title}${pri}</div>
       <div class="point">${cat.point}</div></div></div>`;
     cat.tracks.forEach((trk,i)=>{
-      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id];
+      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id]||!!note;
       let chips=RATES.map(r=>`<button class="rb ${rated===r?'on':''}" data-r="${r}" data-id="${id}">${r}</button>`).join("");
       html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
         <div class="trk-row"><div class="trk-info"><div class="trk-t">${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
@@ -538,6 +543,10 @@ function renderCats(){
   bindTracks();
 }
 
+/* textareaを内容の高さに合わせて自動拡大（全文が見える） */
+function autoGrow(ta){ ta.style.height="auto";
+  ta.style.height=(ta.scrollHeight + ta.offsetHeight - ta.clientHeight)+"px"; } /* border-box分(枠線)を加味 */
+
 function bindTracks(){
   const s=active();
   document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
@@ -550,13 +559,16 @@ function bindTracks(){
   });
   document.querySelectorAll(".memo-toggle").forEach(t=>t.onclick=()=>{
     const id=t.dataset.mid; s.openMemo[id]=!s.openMemo[id];
-    document.getElementById("memo-"+id).classList.toggle("open",s.openMemo[id]); persist(false);
+    const memo=document.getElementById("memo-"+id);
+    memo.classList.toggle("open",s.openMemo[id]); persist(false);
+    if(s.openMemo[id]) autoGrow(memo.querySelector("textarea")); /* 開いた時に全文に合わせる */
   });
   document.querySelectorAll("textarea[data-nid]").forEach(ta=>{
     ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value;
       const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg)tg.textContent=ta.value?'✎ メモあり':'＋ メモ';
-      persist(false); };
+      autoGrow(ta); persist(false); };
     ta.onblur=()=>persist(true);
+    if(ta.value && ta.closest(".memo.open")) autoGrow(ta); /* 再表示時、保存済みメモを全文表示 */
   });
 }
 
