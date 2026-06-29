@@ -33,8 +33,14 @@
   .icon-btn{font-family:var(--mono);font-size:10.5px;color:var(--txt3);background:transparent;
     border:1px solid var(--line2);border-radius:7px;padding:7px 9px;cursor:pointer;}
   .icon-btn:active{background:var(--card2);}
-  .back{font-family:var(--mono);font-size:12px;color:var(--steel);background:transparent;border:none;
-    cursor:pointer;padding:6px 2px;display:flex;align-items:center;gap:5px;}
+  .back{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;color:var(--steel);
+    background:var(--card2);border:1px solid var(--line2);border-radius:8px;
+    cursor:pointer;padding:9px 14px;display:inline-flex;align-items:center;gap:6px;
+    transition:background .15s ease,border-color .15s ease;}
+  .back:hover{border-color:var(--steel);}
+  .back:active{background:var(--card);}
+  .back .ar{font-size:15px;line-height:1;}
+  .back-bottom{margin:4px 16px 8px;width:calc(100% - 32px);justify-content:center;padding:12px 14px;}
 
   .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
   .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
@@ -241,7 +247,7 @@
 
 <!-- DETAIL VIEW -->
 <div class="view" id="viewDetail">
-  <div style="padding:10px 16px 0"><button class="back" id="btnBack">‹ 一覧へ戻る</button></div>
+  <div style="padding:10px 16px 0"><button class="back" id="btnBack"><span class="ar">‹</span> 一覧へ戻る</button></div>
   <div class="sess-edit">
     <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Noble Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="fDate"></div>
@@ -264,11 +270,12 @@
     ◎=理想 / ○=良 / △=惜しい / ✕=合わない。評価とメモは自動保存されます。<br>
     VE10との艶A/Bは同曲・同条件で。アッテネーターは付けたまま、音量は聴感合わせ。
   </footer>
+  <button class="back back-bottom" id="btnBackBottom"><span class="ar">‹</span> 一覧へ戻る</button>
 </div>
 
 <!-- COMPARE VIEW -->
 <div class="view" id="viewCompare">
-  <div style="padding:10px 16px 0"><button class="back" id="btnBackCmp">‹ 一覧へ戻る</button></div>
+  <div style="padding:10px 16px 0"><button class="back" id="btnBackCmp"><span class="ar">‹</span> 一覧へ戻る</button></div>
   <div class="cmp-actions">
     <span class="lbl" id="cmpInfo">0 機種選択中</span>
     <button class="small-btn" id="cmpSelAll">全選択</button>
@@ -517,7 +524,9 @@ document.getElementById("mStart").onclick=()=>{
   store.sessions.push(s); persist(true); modal.classList.remove("open"); openSession(s.id);
 };
 
-document.getElementById("btnBack").onclick=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); };
+const backToList=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); window.scrollTo(0,0); };
+document.getElementById("btnBack").onclick=backToList;
+document.getElementById("btnBackBottom").onclick=backToList;
 
 /* compare */
 function tone(avg){
