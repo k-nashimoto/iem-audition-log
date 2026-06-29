@@ -94,11 +94,11 @@
   .field{display:flex;align-items:center;gap:10px;margin:6px 0;}
   .field label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--txt3);width:62px;flex:none;white-space:nowrap;}
   .field input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
-    color:var(--txt);font-family:var(--jp);font-size:14px;padding:9px 10px;}
+    color:var(--txt);font-family:var(--jp);font-size:16px;padding:9px 10px;}/* 16px未満だとiOSで自動ズーム */
   .field input:focus{outline:none;border-color:var(--steel);}
   .field input[type=date]{font-family:var(--mono);}
   .field select{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line2);border-radius:8px;
-    color:var(--txt);font-family:var(--mono);font-size:14px;padding:9px 10px;-webkit-appearance:none;appearance:none;
+    color:var(--txt);font-family:var(--mono);font-size:16px;padding:9px 10px;-webkit-appearance:none;appearance:none;
     background-image:linear-gradient(45deg,transparent 50%,var(--txt3) 50%),linear-gradient(135deg,var(--txt3) 50%,transparent 50%);
     background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
   .field select:focus{outline:none;border-color:var(--steel);}
@@ -158,8 +158,8 @@
   .memo-toggle:active{color:var(--txt);}
   .memo{display:none;margin-top:7px;}
   .memo.open{display:block;}
-  .memo textarea{width:100%;min-height:46px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:13px;color:var(--txt);
-    background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}
+  .memo textarea{width:100%;min-height:46px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:16px;color:var(--txt);
+    background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}/* 16px未満だとiOSで自動ズーム */
   .memo textarea:focus{outline:none;border-color:var(--steel);}
 
   /* Modal */
