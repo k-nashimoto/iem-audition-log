@@ -179,7 +179,9 @@
     color:var(--txt2);font-family:var(--jp);font-size:14px;cursor:pointer;}
 
   /* Compare */
-  .cmp-actions{display:flex;gap:8px;align-items:center;margin:14px 16px 6px;flex-wrap:wrap;}
+  .cmp-mode{display:flex;gap:6px;margin:14px 16px 2px;}
+  .cmp-mode .seg-btn{flex:1;}
+  .cmp-actions{display:flex;gap:8px;align-items:center;margin:10px 16px 6px;flex-wrap:wrap;}
   .cmp-actions .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--txt3);
     margin-right:auto;}
   .small-btn{font-family:var(--mono);font-size:10.5px;color:var(--txt3);
@@ -236,6 +238,24 @@
   .cmp-foothead{background:var(--bg2);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--gold);
     display:flex;align-items:center;position:sticky;left:0;z-index:1;}
   .cmp-foot{background:linear-gradient(180deg,rgba(201,168,106,.06),transparent);}
+
+  /* メーカー別 傾向サマリー */
+  .cmp-trend{margin:14px 16px 4px;display:flex;flex-direction:column;gap:9px;}
+  .cmp-trend-h{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--txt3);margin:2px 2px 0;}
+  .cmp-trend-card{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:11px 13px;}
+  .cmp-trend-card .mk{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--steel);
+    text-transform:uppercase;display:flex;align-items:baseline;gap:7px;margin-bottom:7px;}
+  .cmp-trend-card .mk .n{color:var(--txt3);font-size:9.5px;letter-spacing:.06em;text-transform:none;}
+  .cmp-trend-card .mk .av{margin-left:auto;font-size:10px;color:var(--txt3);}
+  .cmp-trend-row{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;margin:4px 0;}
+  .cmp-trend-row .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.08em;width:30px;flex:none;
+    border-radius:4px;padding:2px 0;text-align:center;border:1px solid;}
+  .cmp-trend-row .lbl.good{color:var(--gold);border-color:#5a4a2a;background:rgba(201,168,106,.08);}
+  .cmp-trend-row .lbl.warn{color:var(--caution);border-color:#5c452a;background:rgba(216,163,94,.08);}
+  .cmp-trend-row .ct{color:var(--txt2);line-height:1.4;flex:1;min-width:0;}
+  .cmp-trend-row .sym{font-family:var(--mono);font-weight:700;flex:none;}
+  .cmp-trend-row .sym.t-gold{color:var(--gold);}.cmp-trend-row .sym.t-steel{color:var(--steel);}
+  .cmp-trend-row .sym.t-caution{color:var(--caution);}.cmp-trend-row .sym.t-bad{color:var(--bad);}
 
   footer{margin:22px 18px 0;font-size:11.5px;color:var(--txt3);line-height:1.7;}
   footer b{color:var(--txt2);font-weight:600;}
@@ -317,6 +337,10 @@
 <!-- COMPARE VIEW -->
 <div class="view" id="viewCompare">
   <div style="padding:10px 16px 0"><button class="back" id="btnBackCmp"><span class="ar">‹</span> 一覧へ戻る</button></div>
+  <div class="cmp-mode" id="cmpMode">
+    <button type="button" class="seg-btn on" data-mode="session">機種別</button>
+    <button type="button" class="seg-btn" data-mode="maker">メーカー別</button>
+  </div>
   <div class="cmp-actions">
     <span class="lbl" id="cmpInfo">0 機種選択中</span>
     <button class="small-btn" id="cmpSelAll">全選択</button>
@@ -325,8 +349,8 @@
   <div id="cmpChips" class="cmp-chips"></div>
   <div id="cmpMatrix"></div>
   <footer>
-    比較したい機種を上のチップで任意に選択。各セルは平均評価（バー＋シンボル）と<b>◎数 · 評価済/全曲</b>を示します。<br>
-    ◎=4, ○=3, △=2, ✕=1 として算出。未評価カテゴリは「—」。
+    <b>機種別</b>は選んだ試聴を、<b>メーカー別</b>はメーカーごとに全試聴を集計して比較します。各セルは平均評価（バー＋シンボル）と<b>◎数 · 評価済</b>。<br>
+    ◎=4, ○=3, △=2, ✕=1 として算出。未評価は「—」。メーカー別では下に<b>得意／注意</b>カテゴリの傾向も表示します。
   </footer>
 </div>
 
@@ -428,6 +452,8 @@ function loadStore(){
   try{ const raw=localStorage.getItem(KEY); if(raw) store=JSON.parse(raw); }catch(e){}
   if(!store.sessions) store.sessions=[];
   if(!Array.isArray(store.compareIds)) store.compareIds=[];
+  /* compareMakers は未定義のまま（初回は全メーカー選択）。配列なら尊重 */
+  if(store.cmpMode!=="maker") store.cmpMode="session";
 }
 let saveTimer=null;
 function persist(flash){
@@ -717,6 +743,36 @@ function sessStat(s){
   const sum=rs.reduce((a,r)=>a+SCORE[r],0);
   return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:TOTAL};
 }
+/* ---- メーカー別 集計 ---- */
+const NO_MAKER="(メーカー未設定)";
+function makerKey(s){ return (s.maker||"").trim()||NO_MAKER; }
+function makerGroups(){
+  const g={};
+  store.sessions.forEach(s=>{ const k=makerKey(s); (g[k]=g[k]||[]).push(s); });
+  return g; // { maker: [sessions] }
+}
+/* 複数 session をまたいでカテゴリ集計（rated=評価数, total=最大可能数） */
+function aggCatStat(sessions,cat){
+  let sum=0,n=0,gold=0; const total=cat.tracks.length*sessions.length;
+  sessions.forEach(s=>cat.tracks.forEach((_,i)=>{
+    const r=(s.ratings||{})[tid(cat.no,i)];
+    if(r){ sum+=SCORE[r]; n++; if(r==="◎")gold++; }
+  }));
+  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
+}
+function aggSessStat(sessions){
+  let sum=0,n=0,gold=0; const total=TOTAL*sessions.length;
+  sessions.forEach(s=>Object.values(s.ratings||{}).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; }));
+  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
+}
+/* 得意（最高avg）・注意（最低avg）カテゴリを抽出 */
+function makerTrend(sessions){
+  const stats=CATS.map(c=>({cat:c,st:aggCatStat(sessions,c)})).filter(x=>x.st.avg!==null);
+  if(stats.length===0) return null;
+  const best=stats.reduce((a,b)=>b.st.avg>a.st.avg?b:a);
+  const worst=stats.reduce((a,b)=>b.st.avg<a.st.avg?b:a);
+  return {best,worst,multi:stats.length>1};
+}
 function cellHtml(st){
   if(st.avg===null) return `<div class="cmp-none">—</div>`;
   const t=tone(st.avg), pct=((st.avg-1)/3)*100, sym=avgSym(st.avg);
@@ -724,21 +780,43 @@ function cellHtml(st){
     <div class="cmp-sym t-${t}">${sym}</div>
     <div class="cmp-sub">${st.gold?`<b>◎${st.gold}</b> · `:''}${st.rated}/${st.total}</div>`;
 }
+/* グリッド本体（行ヘッダ＋カテゴリ行＋合計行）を組み立てる共通処理 */
+function buildGrid(cols){ // cols: [{label, sub, catStatFn, sumStat}]
+  let html=`<div class="cmp-scroll"><div class="cmp-grid" style="--cols:${cols.length}">`;
+  html+=`<div class="cmp-cell cmp-head"></div>`;
+  cols.forEach(c=>{
+    html+=`<div class="cmp-cell cmp-head"><div class="iem">${esc(c.label)}</div><div class="d">${esc(c.sub)}</div></div>`;
+  });
+  CATS.forEach(cat=>{
+    const pri=cat.pri?`<span class="cpri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
+    html+=`<div class="cmp-cell cmp-rowhead"><span class="cno">${cat.no}</span><span class="ct">${esc(cat.title)}</span>${pri}</div>`;
+    cols.forEach(c=>{ html+=`<div class="cmp-cell cmp-data">${cellHtml(c.catStatFn(cat))}</div>`; });
+  });
+  html+=`<div class="cmp-cell cmp-foothead">合計</div>`;
+  cols.forEach(c=>{ html+=`<div class="cmp-cell cmp-data cmp-foot">${cellHtml(c.sumStat)}</div>`; });
+  html+=`</div></div>`;
+  return html;
+}
+
 function renderCompare(){
+  // モード切替ボタンの状態を反映
+  document.querySelectorAll("#cmpMode .seg-btn").forEach(b=>b.classList.toggle("on",b.dataset.mode===store.cmpMode));
+  if(store.cmpMode==="maker") renderCompareMaker(); else renderCompareSession();
+}
+
+function renderCompareSession(){
   store.compareIds=store.compareIds||[];
   const all=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt-a.createdAt));
-  // valid IDs only
   const validIds=new Set(all.map(s=>s.id));
   store.compareIds=store.compareIds.filter(id=>validIds.has(id));
   const sels=store.compareIds;
 
   document.getElementById("cmpInfo").textContent=`${sels.length} 機種選択中 / 全 ${all.length} 件`;
 
-  const chipsHost=document.getElementById("cmpChips");
+  const chipsHost=document.getElementById("cmpChips"), host=document.getElementById("cmpMatrix");
   if(all.length===0){
     chipsHost.innerHTML="";
-    document.getElementById("cmpMatrix").innerHTML=
-      `<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
+    host.innerHTML=`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
     return;
   }
   chipsHost.innerHTML=all.map(s=>`<div class="cmp-chip ${sels.includes(s.id)?'on':''}" data-cid="${s.id}">
@@ -746,50 +824,86 @@ function renderCompare(){
   </div>`).join("");
 
   const sessions=sels.map(id=>store.sessions.find(s=>s.id===id)).filter(Boolean);
-  const host=document.getElementById("cmpMatrix");
-  if(sessions.length===0){
-    host.innerHTML=`<div class="cmp-empty">上から比較する機種を選択してください。</div>`;
+  if(sessions.length===0){ host.innerHTML=`<div class="cmp-empty">上から比較する機種を選択してください。</div>`; return; }
+  const cols=sessions.map(s=>({label:s.iem||"(機種名なし)",sub:s.date||"",catStatFn:cat=>catStat(s,cat),sumStat:sessStat(s)}));
+  host.innerHTML=buildGrid(cols);
+}
+
+function renderCompareMaker(){
+  const groups=makerGroups();
+  // メーカーを試聴数の多い順→名前順で並べる
+  const names=Object.keys(groups).sort((a,b)=>(groups[b].length-groups[a].length)||a.localeCompare(b,"ja"));
+  const validNames=new Set(names);
+  if(!Array.isArray(store.compareMakers)) store.compareMakers=names.slice(); // 初回のみ全メーカー
+  else store.compareMakers=store.compareMakers.filter(m=>validNames.has(m)); // 既存選択は尊重（空なら空のまま）
+  const sels=store.compareMakers;
+
+  document.getElementById("cmpInfo").textContent=`${sels.length} メーカー選択中 / 全 ${names.length} 社`;
+
+  const chipsHost=document.getElementById("cmpChips"), host=document.getElementById("cmpMatrix");
+  if(names.length===0){
+    chipsHost.innerHTML="";
+    host.innerHTML=`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
     return;
   }
-  let html=`<div class="cmp-scroll"><div class="cmp-grid" style="--cols:${sessions.length}">`;
-  html+=`<div class="cmp-cell cmp-head"></div>`;
-  sessions.forEach(s=>{
-    html+=`<div class="cmp-cell cmp-head"><div class="iem">${esc(s.iem||"(機種名なし)")}</div><div class="d">${s.date||""}</div></div>`;
+  chipsHost.innerHTML=names.map(m=>`<div class="cmp-chip ${sels.includes(m)?'on':''}" data-cmk="${esc(m)}">
+    <span class="iem">${esc(m)}</span><span class="d">${groups[m].length}件</span>
+  </div>`).join("");
+
+  const picked=names.filter(m=>sels.includes(m));
+  if(picked.length===0){ host.innerHTML=`<div class="cmp-empty">上から集計するメーカーを選択してください。</div>`; return; }
+
+  const cols=picked.map(m=>({label:m,sub:`${groups[m].length}件`,catStatFn:cat=>aggCatStat(groups[m],cat),sumStat:aggSessStat(groups[m])}));
+  let html=buildGrid(cols);
+
+  // 傾向サマリー（得意／注意カテゴリ）
+  html+=`<div class="cmp-trend"><div class="cmp-trend-h">傾向（得意 / 注意カテゴリ）</div>`;
+  picked.forEach(m=>{
+    const tr=makerTrend(groups[m]), ss=aggSessStat(groups[m]);
+    const av=ss.avg!==null?` 平均${ss.avg.toFixed(2)}${ss.gold?` · ◎${ss.gold}`:""}`:" 未評価";
+    html+=`<div class="cmp-trend-card"><div class="mk">${esc(m)}<span class="n">${groups[m].length}件</span><span class="av">${av}</span></div>`;
+    if(!tr){
+      html+=`<div class="cmp-trend-row"><span class="ct" style="color:var(--txt3)">評価データがまだありません。</span></div>`;
+    }else{
+      const row=(cls,lbl,x)=>{const t=tone(x.st.avg);return `<div class="cmp-trend-row"><span class="lbl ${cls}">${lbl}</span>
+        <span class="ct">${esc(x.cat.no)} ${esc(x.cat.title)}</span>
+        <span class="sym t-${t}">${avgSym(x.st.avg)} ${x.st.avg.toFixed(2)}</span></div>`;};
+      html+=row("good","得意",tr.best);
+      if(tr.multi) html+=row("warn","注意",tr.worst); // カテゴリが1つしか評価されていない場合は注意行を省略
+    }
+    html+=`</div>`;
   });
-  CATS.forEach(cat=>{
-    const pri=cat.pri?`<span class="cpri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
-    html+=`<div class="cmp-cell cmp-rowhead">
-      <span class="cno">${cat.no}</span>
-      <span class="ct">${esc(cat.title)}</span>
-      ${pri}
-    </div>`;
-    sessions.forEach(s=>{
-      html+=`<div class="cmp-cell cmp-data">${cellHtml(catStat(s,cat))}</div>`;
-    });
-  });
-  html+=`<div class="cmp-cell cmp-foothead">合計</div>`;
-  sessions.forEach(s=>{
-    html+=`<div class="cmp-cell cmp-data cmp-foot">${cellHtml(sessStat(s))}</div>`;
-  });
-  html+=`</div></div>`;
+  html+=`</div>`;
   host.innerHTML=html;
 }
 
 document.getElementById("btnCompare").onclick=()=>{ renderCompare(); switchView("compare"); };
 document.getElementById("btnBackCmp").onclick=()=>{ renderList(); switchView("list"); };
+document.getElementById("cmpMode").onclick=e=>{
+  const b=e.target.closest("[data-mode]"); if(!b)return;
+  store.cmpMode=b.dataset.mode; persist(false); renderCompare();
+};
 document.getElementById("cmpChips").onclick=e=>{
-  const chip=e.target.closest("[data-cid]"); if(!chip)return;
-  const id=chip.dataset.cid;
-  store.compareIds=store.compareIds||[];
-  const i=store.compareIds.indexOf(id);
-  if(i>=0) store.compareIds.splice(i,1); else store.compareIds.push(id);
+  const chip=e.target.closest("[data-cid],[data-cmk]"); if(!chip)return;
+  if(store.cmpMode==="maker"){
+    const m=chip.dataset.cmk; store.compareMakers=store.compareMakers||[];
+    const i=store.compareMakers.indexOf(m);
+    if(i>=0) store.compareMakers.splice(i,1); else store.compareMakers.push(m);
+  }else{
+    const id=chip.dataset.cid; store.compareIds=store.compareIds||[];
+    const i=store.compareIds.indexOf(id);
+    if(i>=0) store.compareIds.splice(i,1); else store.compareIds.push(id);
+  }
   persist(false); renderCompare();
 };
 document.getElementById("cmpSelAll").onclick=()=>{
-  store.compareIds=store.sessions.map(s=>s.id); persist(false); renderCompare();
+  if(store.cmpMode==="maker") store.compareMakers=Object.keys(makerGroups());
+  else store.compareIds=store.sessions.map(s=>s.id);
+  persist(false); renderCompare();
 };
 document.getElementById("cmpSelNone").onclick=()=>{
-  store.compareIds=[]; persist(false); renderCompare();
+  if(store.cmpMode==="maker") store.compareMakers=[]; else store.compareIds=[];
+  persist(false); renderCompare();
 };
 
 /* export / import */
