@@ -76,6 +76,8 @@
     display:flex;align-items:stretch;overflow:hidden;}
   .session-main{flex:1;min-width:0;padding:13px 14px;cursor:pointer;}
   .session-main:active{background:var(--card2);}
+  .session-maker{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--steel);
+    text-transform:uppercase;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .session-iem{font-size:15px;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .session-meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap;}
   .session-date{font-family:var(--mono);font-size:11px;color:var(--txt2);}
@@ -278,7 +280,8 @@
 <!-- DETAIL VIEW -->
 <div class="view" id="viewDetail">
   <div class="sess-edit">
-    <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Noble Kronos"></div>
+    <div class="field"><label>メーカー</label><input type="text" id="fMaker" list="makerList" placeholder="例：Noble Audio"></div>
+    <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="fDate"></div>
     <div class="field"><label>ソース</label><input type="text" id="fSrc" placeholder="例：Cayin N7+ / Class A"></div>
     <div class="field"><label>再生アプリ</label><input type="text" id="fApp" list="appList" placeholder="例：Apple Music"></div>
@@ -331,7 +334,8 @@
 <div class="modal" id="modal">
   <div class="modal-card">
     <h2>新規試聴を記録</h2>
-    <div class="field"><label>機種名</label><input type="text" id="mIem" placeholder="例：Noble Kronos"></div>
+    <div class="field"><label>メーカー</label><input type="text" id="mMaker" list="makerList" placeholder="例：Noble Audio"></div>
+    <div class="field"><label>機種名</label><input type="text" id="mIem" placeholder="例：Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="mDate"></div>
     <div class="field"><label>ソース</label><input type="text" id="mSrc" placeholder="例：Cayin N7+ / Class A"></div>
     <div class="field"><label>再生アプリ</label><input type="text" id="mApp" list="appList" placeholder="例：Apple Music"></div>
@@ -352,6 +356,7 @@
 
 <input type="file" id="fileInput" accept="application/json" style="display:none">
 <datalist id="appList"></datalist>
+<datalist id="makerList"></datalist>
 <div class="flash" id="flash">保存しました</div>
 <button class="fab-back" id="fabBack" aria-label="一覧へ戻る"><span class="ar">‹</span> 一覧</button>
 
@@ -410,6 +415,10 @@ const SCORE={"◎":4,"○":3,"△":2,"✕":1};
 const CODECS=["LDAC","LHDC","aptX Lossless","aptX Adaptive","aptX HD","aptX","AAC","SBC","LC3"];
 /* 主な音楽再生アプリ（入力候補） */
 const APPS=["Apple Music","Qobuz","Amazon Music","TIDAL","Spotify","YouTube Music","mora qualitas","ローカル/DAP内"];
+/* 主なハイエンドIEMメーカー（入力候補・表記揺れ防止／メーカー別分析の基盤） */
+const MAKERS=["Vision Ears","Noble Audio","64 Audio","Empire Ears","Campfire Audio","Fir Audio",
+  "qdc","Unique Melody","Elysian Acoustic Labs","Softears","Oriolus","JH Audio","Subtonic","Aroma Audio",
+  "FatFreq","Sony","Final","Astell&Kern","Sennheiser","Shure","Westone"];
 const TOTAL=CATS.reduce((s,c)=>s+c.tracks.length,0);
 const KEY="audition-log-v1";
 
@@ -491,6 +500,7 @@ function renderList(){
     const p=progress(s), g=goldCount(s);
     return `<div class="session">
       <div class="session-main" data-open="${s.id}">
+        ${s.maker?`<div class="session-maker">${esc(s.maker)}</div>`:""}
         <div class="session-iem">${esc(s.iem||"(機種名なし)")}</div>
         <div class="session-meta">
           <span class="session-date">${s.date||""}</span>
@@ -523,6 +533,7 @@ function renderList(){
 function openSession(id){
   store.activeId=id; persist();
   const s=active(); if(!s)return;
+  document.getElementById("fMaker").value=s.maker||"";
   document.getElementById("fIem").value=s.iem||"";
   document.getElementById("fDate").value=s.date||today();
   document.getElementById("fSrc").value=s.source||"";
@@ -600,8 +611,8 @@ function updateMeter(){
 }
 
 /* session header edits */
-["fIem","fDate","fSrc","fApp","fCable"].forEach(idn=>{
-  const map={fIem:"iem",fDate:"date",fSrc:"source",fApp:"app",fCable:"cable"};
+["fMaker","fIem","fDate","fSrc","fApp","fCable"].forEach(idn=>{
+  const map={fMaker:"maker",fIem:"iem",fDate:"date",fSrc:"source",fApp:"app",fCable:"cable"};
   document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
   document.getElementById(idn).addEventListener("blur",()=>persist(true));
 });
@@ -619,6 +630,7 @@ document.getElementById("fConnSeg").addEventListener("click",e=>{
 /* new session modal */
 const modal=document.getElementById("modal");
 document.getElementById("btnNew").onclick=()=>{
+  document.getElementById("mMaker").value="";
   document.getElementById("mIem").value="";
   document.getElementById("mDate").value=today();
   document.getElementById("mSrc").value="Cayin N7+ / Class A";
@@ -626,7 +638,7 @@ document.getElementById("btnNew").onclick=()=>{
   document.getElementById("mCable").value="";
   fillCodec(document.getElementById("mCodec"),"");
   setConn("m","wired"); /* 既定は有線 */
-  modal.classList.add("open"); setTimeout(()=>document.getElementById("mIem").focus(),50);
+  modal.classList.add("open"); setTimeout(()=>document.getElementById("mMaker").focus(),50);
 };
 document.getElementById("mConnSeg").addEventListener("click",e=>{
   const b=e.target.closest(".seg-btn"); if(b) setConn("m",b.dataset.conn);
@@ -636,7 +648,8 @@ modal.onclick=e=>{ if(e.target===modal) modal.classList.remove("open"); };
 document.getElementById("mStart").onclick=()=>{
   const iem=document.getElementById("mIem").value.trim()||"(機種名なし)";
   const conn=getConn("m");
-  const s={id:"s"+Date.now(),iem,date:document.getElementById("mDate").value||today(),
+  const s={id:"s"+Date.now(),iem,maker:document.getElementById("mMaker").value.trim(),
+    date:document.getElementById("mDate").value||today(),
     source:document.getElementById("mSrc").value.trim(),
     app:document.getElementById("mApp").value.trim(),
     conn,
@@ -801,6 +814,7 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 
 /* init */
 document.getElementById("appList").innerHTML=APPS.map(a=>`<option value="${esc(a)}"></option>`).join("");
+document.getElementById("makerList").innerHTML=MAKERS.map(m=>`<option value="${esc(m)}"></option>`).join("");
 loadStore(); renderList(); switchView("list");
 </script>
 </body>
