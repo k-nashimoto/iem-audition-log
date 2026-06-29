@@ -41,6 +41,21 @@
   .back:active{background:var(--card);}
   .back .ar{font-size:15px;line-height:1;}
   .back-bottom{margin:4px 16px 8px;width:calc(100% - 32px);justify-content:center;padding:12px 14px;}
+  /* 固定ヘッダー内の戻る（スクロールしても常に左上に表示） */
+  .hdr-back{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:38px;
+    border-radius:9px;background:var(--card2);border:1px solid var(--line2);color:var(--steel);
+    cursor:pointer;margin-right:11px;transition:background .15s ease,border-color .15s ease;}
+  .hdr-back .ar{font-size:20px;line-height:1;}
+  .hdr-back:active{background:var(--card);}
+  /* フローティング戻る（片手・スクロール途中でも押せる） */
+  .fab-back{position:fixed;left:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:25;
+    display:none;align-items:center;gap:5px;font-family:var(--mono);font-size:12.5px;letter-spacing:.04em;
+    color:var(--steel);background:rgba(27,33,42,.92);backdrop-filter:blur(8px);
+    border:1px solid var(--line2);border-radius:99px;padding:11px 16px;cursor:pointer;
+    box-shadow:0 4px 18px rgba(0,0,0,.45);transition:opacity .2s ease,transform .2s ease;}
+  .fab-back.show{display:flex;}
+  .fab-back .ar{font-size:16px;line-height:1;}
+  .fab-back:active{background:var(--card);transform:scale(.96);}
 
   .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
   .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
@@ -143,7 +158,7 @@
   .memo-toggle:active{color:var(--txt);}
   .memo{display:none;margin-top:7px;}
   .memo.open{display:block;}
-  .memo textarea{width:100%;min-height:46px;resize:vertical;font-family:var(--jp);font-size:13px;color:var(--txt);
+  .memo textarea{width:100%;min-height:46px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:13px;color:var(--txt);
     background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}
   .memo textarea:focus{outline:none;border-color:var(--steel);}
 
@@ -234,6 +249,7 @@
 
 <header>
   <div class="h-top">
+    <button class="hdr-back" id="btnBackHdr" aria-label="一覧へ戻る" style="display:none"><span class="ar">‹</span></button>
     <div id="hLeft">
       <div class="h-title">試聴ログ<span class="sub">AUDITION LOG · PERSONAL REFERENCE</span></div>
     </div>
@@ -261,7 +277,6 @@
 
 <!-- DETAIL VIEW -->
 <div class="view" id="viewDetail">
-  <div style="padding:10px 16px 0"><button class="back" id="btnBack"><span class="ar">‹</span> 一覧へ戻る</button></div>
   <div class="sess-edit">
     <div class="field"><label>機種</label><input type="text" id="fIem" placeholder="例：Noble Kronos"></div>
     <div class="field"><label>日付</label><input type="date" id="fDate"></div>
@@ -338,6 +353,7 @@
 <input type="file" id="fileInput" accept="application/json" style="display:none">
 <datalist id="appList"></datalist>
 <div class="flash" id="flash">保存しました</div>
+<button class="fab-back" id="fabBack" aria-label="一覧へ戻る"><span class="ar">‹</span> 一覧</button>
 
 <script>
 const CATS = [
@@ -451,6 +467,10 @@ function switchView(v){
   document.getElementById("viewCompare").classList.toggle("active",v==="compare");
   document.getElementById("detailMeter").style.display = v==="detail"?"flex":"none";
   document.getElementById("hActions").style.display = v==="list"?"flex":"none";
+  document.getElementById("btnBackHdr").style.display = v==="detail"?"flex":"none";
+  const fab=document.getElementById("fabBack");
+  fab.classList.toggle("show", v==="detail");
+  if(v==="detail"){ fab.style.opacity="1"; fab.style.pointerEvents="auto"; } /* 表示時は既定で表示 */
   const titles={
     list:'<div class="h-title">試聴ログ<span class="sub">AUDITION LOG · PERSONAL REFERENCE</span></div>',
     detail:'<div class="h-title">試聴チェック<span class="sub">N7+ / CLASS A · REFERENCE</span></div>',
@@ -511,6 +531,11 @@ function openSession(id){
   document.getElementById("fCable").value=s.cable||"";
   setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
+  growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
+}
+/* 表示中の開いたメモtextareaを内容の高さに合わせる */
+function growOpenMemos(){
+  document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
 }
 
 function renderCats(){
@@ -524,7 +549,7 @@ function renderCats(){
       <div class="cat-meta"><div class="cat-title">${cat.title}${pri}</div>
       <div class="point">${cat.point}</div></div></div>`;
     cat.tracks.forEach((trk,i)=>{
-      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id];
+      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id]||!!note;
       let chips=RATES.map(r=>`<button class="rb ${rated===r?'on':''}" data-r="${r}" data-id="${id}">${r}</button>`).join("");
       html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
         <div class="trk-row"><div class="trk-info"><div class="trk-t">${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
@@ -538,6 +563,10 @@ function renderCats(){
   bindTracks();
 }
 
+/* textareaを内容の高さに合わせて自動拡大（全文が見える） */
+function autoGrow(ta){ ta.style.height="auto";
+  ta.style.height=(ta.scrollHeight + ta.offsetHeight - ta.clientHeight)+"px"; } /* border-box分(枠線)を加味 */
+
 function bindTracks(){
   const s=active();
   document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
@@ -550,13 +579,16 @@ function bindTracks(){
   });
   document.querySelectorAll(".memo-toggle").forEach(t=>t.onclick=()=>{
     const id=t.dataset.mid; s.openMemo[id]=!s.openMemo[id];
-    document.getElementById("memo-"+id).classList.toggle("open",s.openMemo[id]); persist(false);
+    const memo=document.getElementById("memo-"+id);
+    memo.classList.toggle("open",s.openMemo[id]); persist(false);
+    if(s.openMemo[id]) autoGrow(memo.querySelector("textarea")); /* 開いた時に全文に合わせる */
   });
   document.querySelectorAll("textarea[data-nid]").forEach(ta=>{
     ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value;
       const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg)tg.textContent=ta.value?'✎ メモあり':'＋ メモ';
-      persist(false); };
+      autoGrow(ta); persist(false); };
     ta.onblur=()=>persist(true);
+    if(ta.value && ta.closest(".memo.open")) autoGrow(ta); /* 再表示時、保存済みメモを全文表示 */
   });
 }
 
@@ -615,8 +647,35 @@ document.getElementById("mStart").onclick=()=>{
 };
 
 const backToList=()=>{ store.activeId=null; persist(); renderList(); switchView("list"); window.scrollTo(0,0); };
-document.getElementById("btnBack").onclick=backToList;
+document.getElementById("btnBackHdr").onclick=backToList;
 document.getElementById("btnBackBottom").onclick=backToList;
+document.getElementById("fabBack").onclick=backToList;
+
+/* 最下部の戻るボタンが見えている間はフローティングを隠す（重複・干渉を防ぐ） */
+if("IntersectionObserver" in window){
+  const fab=document.getElementById("fabBack");
+  const io=new IntersectionObserver(es=>{
+    if(!document.getElementById("viewDetail").classList.contains("active"))return;
+    fab.style.opacity = es[0].isIntersecting ? "0" : "1";
+    fab.style.pointerEvents = es[0].isIntersecting ? "none" : "auto";
+  },{root:null,threshold:0});
+  io.observe(document.getElementById("btnBackBottom"));
+}
+
+/* 右スワイプで一覧へ戻る（詳細画面） */
+(function(){
+  let sx=0,sy=0,tracking=false;
+  const dv=document.getElementById("viewDetail");
+  dv.addEventListener("touchstart",e=>{
+    if(e.touches.length!==1){ tracking=false; return; }
+    sx=e.touches[0].clientX; sy=e.touches[0].clientY; tracking=true;
+  },{passive:true});
+  dv.addEventListener("touchend",e=>{
+    if(!tracking)return; tracking=false;
+    const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+    if(dx>80 && Math.abs(dy)<50) backToList(); /* 横方向に十分・縦ブレ小 */
+  },{passive:true});
+})();
 
 /* compare */
 function tone(avg){
