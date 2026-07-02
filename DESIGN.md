@@ -123,8 +123,8 @@ Headings bold and tight; body regular. All secondary/label text uses `textSubdue
 
 ## 5. Layout Principles
 
-- Spacing scale: 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 px.
-- Generous vertical rhythm; separate sections by 32–48px.
+- Spacing scale: 4 · 8 · 16 · 24 · 48 px (front-matter tokens `xs · sm · md · lg · xl`; these are the normative values).
+- Generous vertical rhythm; separate sections by 24–48px (`lg`–`xl`).
 - Content max-width ~1150px, centered; persistent left nav rail on desktop.
 - Card grid: responsive, min column ~180px, gap 24px.
 - Let the dark canvas breathe — whitespace is a feature, not empty space to fill.
