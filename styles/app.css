@@ -204,6 +204,15 @@
     color:var(--txt3);line-height:1.7;border-top:1px solid var(--line);padding-top:11px;}
   .catalog-info b{color:var(--caution);}
   /* 店頭コアモード トグル */
+  /* 評価記号の凡例（上部・チェックリスト直前） */
+  .rate-legend{margin:14px 16px 16px;display:flex;flex-wrap:wrap;align-items:center;gap:7px 15px;
+    background:var(--card);border-radius:8px;padding:11px 14px;font-size:12px;color:var(--txt2);}
+  .rate-legend .rl{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--jp);}
+  .rate-legend .rl b{font-family:var(--mono);font-size:15px;font-weight:700;line-height:1;}
+  .rate-legend .t-gold{color:var(--gold);}.rate-legend .t-steel{color:var(--steel);}
+  .rate-legend .t-caution{color:var(--caution);}.rate-legend .t-bad{color:var(--bad);}
+  .rate-legend .rl-note{color:var(--txt3);font-size:11px;margin-left:auto;}
+
   .core-toggle{margin:14px 16px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .core-toggle .seg-btn{flex:none;padding:9px 14px;}
   .core-toggle .ct-note{font-size:11px;color:var(--txt3);}
