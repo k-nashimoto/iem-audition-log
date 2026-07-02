@@ -190,14 +190,20 @@
   .rb.on[data-r="△"]{color:#101216;background:var(--caution);border-color:var(--caution);}
   .rb.on[data-r="✕"]{color:#fff;background:var(--bad);border-color:var(--bad);}
   .trk.done{background:linear-gradient(90deg,rgba(201,168,106,.05),transparent 40%);}
-  .memo-toggle{margin-top:9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--txt3);
-    background:transparent;border:none;cursor:pointer;padding:2px 0;}
-  .memo-toggle:active{color:var(--txt);}
-  .memo{display:none;margin-top:7px;}
+  /* メモ入力トグル＝タップできると分かるボタン表記 */
+  .memo-toggle{margin-top:10px;display:inline-flex;align-items:center;gap:5px;
+    font-family:var(--jp);font-size:12px;font-weight:600;letter-spacing:.02em;color:var(--txt2);
+    background:var(--field);border:1px solid var(--btn-line);border-radius:var(--pill);
+    padding:6px 13px;cursor:pointer;transition:border-color .15s ease,color .15s ease,background .15s ease;}
+  .memo-toggle:hover{border-color:var(--txt);color:var(--txt);}
+  .memo-toggle:active{background:var(--card2);transform:scale(.98);}
+  .memo-toggle.has{color:var(--green);border-color:#2f5d3c;}/* メモ入力済みを示す */
+  .memo{display:none;margin-top:8px;}
   .memo.open{display:block;}
   .memo textarea{width:100%;min-height:46px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:16px;color:var(--txt);
-    background:var(--bg2);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;line-height:1.5;}/* 16px未満だとiOSで自動ズーム */
-  .memo textarea:focus{outline:none;border-color:var(--steel);}
+    background:var(--field);border:1px solid transparent;border-radius:8px;padding:8px 10px;line-height:1.5;transition:box-shadow .12s ease;}/* 16px未満だとiOSで自動ズーム */
+  .memo textarea::placeholder{color:var(--txt3);}
+  .memo textarea:focus{outline:none;box-shadow:0 0 0 2px var(--green);}
 
   /* Modal */
   .modal{position:fixed;inset:0;background:rgba(6,8,11,.7);backdrop-filter:blur(4px);z-index:30;
