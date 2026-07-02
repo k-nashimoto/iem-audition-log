@@ -460,8 +460,17 @@ document.getElementById("fileInput").onchange=e=>{
   const rd=new FileReader();
   rd.onload=()=>{ try{
     const data=JSON.parse(rd.result); const inc=data.sessions||[];
-    const map={}; store.sessions.forEach(s=>map[s.id]=s); inc.forEach(s=>map[s.id]=s);
-    store.sessions=Object.values(map); persist(true); renderList(); showFlash("読込しました");
+    const map={}; store.sessions.forEach(s=>map[s.id]=s);
+    let added=0,overwritten=0,skipped=0;
+    inc.forEach(s=>{
+      if(map[s.id]){ // 同一idが既存 → 上書き可否を確認（キャンセルで該当ログのマージをスキップ）
+        const label=`${s.maker?s.maker+" ":""}${s.iem||"(機種名なし)"}${s.date?" / "+s.date:""}`;
+        const ok=confirm(`同じ記録が既に存在します。\n「${label}」\n\n現端末のデータを読込データで上書きしますか？\n\n［OK＝上書き ／ キャンセル＝この記録はスキップ］`);
+        if(ok){ map[s.id]=s; overwritten++; } else { skipped++; }
+      } else { map[s.id]=s; added++; } // 新規idは追加
+    });
+    store.sessions=Object.values(map); persist(true); renderList();
+    showFlash(`読込：追加${added}・上書き${overwritten}・スキップ${skipped}`);
   }catch(err){ alert("読込に失敗しました（JSON形式を確認してください）"); } };
   rd.readAsText(file); e.target.value="";
 };
