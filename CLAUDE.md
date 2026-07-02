@@ -61,7 +61,8 @@
 - サブ観点は各曲の**タグ**として表現（曲評価＝サブ観点評価）。カテゴリ評価は曲評価の平均で、別枠の手動メインスコアは持たない。
 - **★店頭コア7**は `core` フラグ、詳細画面に「コアのみ表示」トグルあり。
 - 各曲の `id` は**安定slug**（例 `first-love`）。rating/notes/openMemo はこの id をキーにする（旧・位置ベース `01-0` からは `OLD_ID_MAP` で冪等移行）。
-- カテゴリ定義・曲リスト・サブ観点は `iem-audition-log.html` 内の `CATS` 配列が単一の真実（source of truth）。
+- **曲リストと評価は分離**：`TRACKS`（曲リスト＝source of truth、`cat` で所属カテゴリ参照）と `CATEGORIES`（カテゴリ定義）を持ち、`CATS` はその結合ビュー。曲の改訂は `TRACKS` を編集するだけで、評価は id 参照なので壊れない。改訂時は `CATALOG_VERSION` を上げる。
+- **孤児評価**（現行カタログに無い曲の評価）は集計から除外しつつ保持（`CATALOG_IDS` で判定、詳細画面に件数注記）。
 
 ---
 
@@ -69,7 +70,7 @@
 
 - **単一ファイル**: `iem-audition-log.html`（HTML+CSS+vanilla JS、ビルド工程なし、外部依存なし＝オフライン動作）。
 - **保存**: ブラウザの `localStorage`、キー `audition-log-v1`。Claude.ai アーティファクト内では動かないが、ブラウザ/GitHub Pages では正常動作。
-- **データモデル**: `store = { sessions: [], activeId, compareIds:[], compareMakers?, cmpMode }`。各 session = `{ id, maker, iem, date, source, app, conn, codec, cable, createdAt, ratings:{trackId}, notes:{trackId}, openMemo:{} }`。trackId は各曲の**安定slug**（例 `first-love`）。旧・位置ベース `"<カテゴリNo>-<index>"` は `OLD_ID_MAP` で移行。`maker`（メーカー）は機種名と別枠でメーカー別集計の基盤。
+- **データモデル**: `store = { sessions: [], activeId, compareIds:[], compareMakers?, cmpMode }`。各 session = `{ id, maker, iem, date, source, app, conn, codec, cable, catalogVersion, createdAt, ratings:{trackId}, notes:{trackId}, openMemo:{} }`。trackId は各曲の**安定slug**（例 `first-love`）。旧・位置ベース `"<カテゴリNo>-<index>"` は `OLD_ID_MAP` で移行。`maker`（メーカー）は機種名と別枠でメーカー別集計の基盤。
 - **画面**: 一覧ビュー（機種カード=メーカー・機種・日付・進捗・◎数）／詳細ビュー（メーカー・機種・日付・ソース・再生アプリ・接続方式編集＋カテゴリ別チェックリスト＋コアのみ表示）／比較ビュー（機種別／メーカー別モード、カテゴリ×平均のマトリクス、メーカー別は得意/注意の傾向）。
 - **書出/読込**: 全データの JSON エクスポート・インポート（端末移行・バックアップ用）。
 - **デプロイ**: GitHub Pages。リポジトリ `k-nashimoto/iem-audition-log`、`main` / `(root)`。
