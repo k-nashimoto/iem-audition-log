@@ -41,14 +41,17 @@ function renderHero(){
     return;
   }
   const makers=new Set(ss.map(makerKey)).size;
+  const iems=new Set(ss.map(s=>makerKey(s)+"|"+((s.iem||"").trim()))).size; // ユニーク機種数
   const latest=ss.map(s=>s.date).filter(Boolean).sort().slice(-1)[0]||"—";
-  let ratedSum=0,goldSum=0,best=null;
-  ss.forEach(s=>{ const st=sessStat(s); ratedSum+=st.rated; goldSum+=st.gold;
-    if(st.avg!==null && (!best||st.avg>best.avg)) best={avg:st.avg,s}; });
+  let scoreSum=0,n=0,goldSum=0,best=null;
+  ss.forEach(s=>{ const st=sessStat(s); goldSum+=st.gold;
+    if(st.avg!==null){ scoreSum+=st.avg*st.rated; n+=st.rated; if(!best||st.avg>best.avg) best={avg:st.avg,s}; } });
+  const overall=n?scoreSum/n:null; // 全体の加重平均スコア
+  const ov=overall!==null?`<div class="hn t-${tone(overall)}">${overall.toFixed(2)}</div>`:`<div class="hn">—</div>`;
   const tiles=`<div class="hero-tiles">
-    <div class="htile"><div class="hn">${ss.length}</div><div class="hl">試聴</div></div>
+    <div class="htile"><div class="hn">${iems}</div><div class="hl">機種</div></div>
     <div class="htile"><div class="hn">${makers}</div><div class="hl">メーカー</div></div>
-    <div class="htile"><div class="hn">${ratedSum}</div><div class="hl">評価済み曲</div></div>
+    <div class="htile">${ov}<div class="hl">平均スコア</div></div>
     <div class="htile"><div class="hn gold">◎${goldSum}</div><div class="hl">理想評価</div></div>
   </div>`;
   const top=best?`<div class="hero-top"><span class="ht-lbl">総合トップ</span>
