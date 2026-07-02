@@ -112,9 +112,13 @@ function renderCats(){
       const id=trk.id, rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id]||!!note;
       const star=trk.core?`<span class="core" title="店頭コア7">★</span>`:"";
       const subb=trk.sub?`<span class="subtag" title="${esc(trk.sub)}">${esc(subLabel(trk.sub))}</span>`:"";
+      // 曲名とアーティストは全角ダッシュ " — " で連結。曲名=メイン／アーティスト=サブに分割表示
+      const dash=trk.t.indexOf(" — ");
+      const title=dash<0?trk.t:trk.t.slice(0,dash);
+      const artist=dash<0?"":trk.t.slice(dash+3);
       let chips=RATES.map(r=>`<button class="rb ${rated===r?'on':''}" data-r="${r}" data-id="${id}">${r}</button>`).join("");
       html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
-        <div class="trk-row"><div class="trk-info"><div class="trk-t">${star}${subb}${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
+        <div class="trk-row"><div class="trk-info"><div class="trk-t">${star}${subb}${esc(title)}</div>${artist?`<div class="trk-artist">${esc(artist)}</div>`:""}<div class="trk-a">${esc(trk.a)}</div></div>
         <div class="rate">${chips}</div></div>
         <button class="memo-toggle" data-mid="${id}">${note?'✎ メモあり':'＋ メモ'}</button>
         <div class="memo ${op?'open':''}" id="memo-${id}"><textarea data-nid="${id}" placeholder="気づいた点（艶・刺さり・空間 など）">${esc(note)}</textarea></div>
