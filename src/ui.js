@@ -69,7 +69,10 @@ function renderList(){
     return;
   }
   wrap.innerHTML=list.map(s=>{
-    const p=progress(s), g=goldCount(s);
+    const st=sessStat(s), p=st.rated, g=st.gold;
+    const score=st.avg!==null
+      ? `<div class="session-score t-${tone(st.avg)}"><div class="ss-sym">${avgSym(st.avg)}</div><div class="ss-num">${st.avg.toFixed(2)}</div></div>`
+      : `<div class="session-score none"><div class="ss-none">未評価</div></div>`;
     return `<div class="session">
       <div class="session-main" data-open="${s.id}">
         ${s.maker?`<div class="session-maker">${esc(s.maker)}</div>`:""}
@@ -87,6 +90,7 @@ function renderList(){
           <span class="mini-num">${p}/${TOTAL}${g?` · <span class="g">◎${g}</span>`:""}</span>
         </div>
       </div>
+      ${score}
       <button class="session-del" data-del="${s.id}" aria-label="削除">🗑</button>
     </div>`;
   }).join("");
