@@ -129,10 +129,13 @@ function openSession(id){
   renderCats(); updateMeter(); switchView("detail");
   growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
 }
-/* 表示中の開いたメモtextareaを内容の高さに合わせる */
+/* 表示中の開いたメモ・総評textareaを内容の高さに合わせる
+   （iOS等でビュー表示直後はレイアウト未確定→rAFでレイアウト確定後に測る） */
 function growOpenMemos(){
-  document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
-  const sum=document.getElementById("fSummary"); if(sum && sum.value) autoGrow(sum); /* 総評メモも全文高さへ */
+  requestAnimationFrame(()=>{
+    document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
+    const sum=document.getElementById("fSummary"); if(sum) autoGrow(sum); /* 総評メモも全文高さへ（空なら最小に戻す） */
+  });
 }
 
 let coreOnly=false; /* ★店頭コアのみ表示（一次スクリーニング用） */
