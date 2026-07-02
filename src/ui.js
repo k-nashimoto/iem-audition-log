@@ -26,8 +26,20 @@ function switchView(v){
 function renderHero(){
   const host=document.getElementById("listHero"); if(!host)return;
   const ss=store.sessions;
+  const expBtn=document.getElementById("btnExport"); // 0件時は書出を無効化
+  if(expBtn){ expBtn.disabled=ss.length===0; expBtn.title=ss.length===0?"記録がありません":""; }
   const note=`<div class="hero-note">記録はこの端末（ブラウザ）に保存されます。端末変更・バックアップは右上の<b>「書出」</b>でJSON保存、<b>「読込」</b>で復元。</div>`;
-  if(ss.length===0){ host.innerHTML=note; return; }
+  if(ss.length===0){ // 記録0件：統計の代わりに好みプロファイル要約＋記録を促す表示
+    host.innerHTML=`<div class="hero-head">LISTENING PROFILE · 評価の軸</div>
+      <div class="hero-profile">
+        <div class="hp-row"><span class="hp-tag top">最重視</span><span class="hp-t">ボーカルの艶・生々しさ（emotional realism）</span></div>
+        <div class="hp-row"><span class="hp-tag axis">決定軸</span><span class="hp-t">包まれる没入・空間スケール</span></div>
+        <div class="hp-row"><span class="hp-tag sens">感度</span><span class="hp-t">キラキラ↔刺さり（サ行・8〜10kHz）に敏感</span></div>
+        <div class="hp-row"><span class="hp-tag seal">低域</span><span class="hp-t">締まったグルーヴ低域（量より質）</span></div>
+        <div class="hp-note">嫌う音：無機質 / boomy bass / 刺さり。<br>まだ記録がありません。<b>「＋ 新規試聴を記録」</b>から始めましょう。</div>
+      </div>`;
+    return;
+  }
   const makers=new Set(ss.map(makerKey)).size;
   const latest=ss.map(s=>s.date).filter(Boolean).sort().slice(-1)[0]||"—";
   let ratedSum=0,goldSum=0,best=null;
