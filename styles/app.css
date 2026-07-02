@@ -320,3 +320,13 @@
     #cats .cat{margin:0;}
     #cats .catalog-info{grid-column:1/-1;} /* 注記は全幅 */
   }
+  /* 大型ディスプレイ（WQHD 2560幅など）: 1920幅=1000pxは据え置き、2000px以上で幅拡張＋3カラム化 */
+  @media (min-width:2000px){
+    body{max-width:1680px;}
+    #sessions{grid-template-columns:repeat(3,1fr);}
+    #cats{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (min-width:3000px){    /* 4K/5K 級 */
+    body{max-width:2200px;}
+    #sessions{grid-template-columns:repeat(4,1fr);}
+  }
