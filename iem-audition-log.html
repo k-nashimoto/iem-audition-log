@@ -288,6 +288,22 @@
   .flash.show{opacity:1;transform:translateX(-50%) translateY(0);}
   @media (prefers-reduced-motion:reduce){*{transition:none!important;}}
   *:focus-visible{outline:2px solid var(--steel);outline-offset:2px;}
+
+  /* ===== PC/大画面での自動調整（モバイルは従来どおり単一カラム） ===== */
+  @media (min-width:768px){
+    body{max-width:860px;}           /* まず横幅を広げて“中央に小さく”を緩和 */
+  }
+  @media (min-width:1024px){
+    body{max-width:1000px;}
+    /* 一覧の機種カードを2カラムに */
+    #sessions{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 16px;}
+    #sessions .session{margin:0;}
+    #sessions .empty{grid-column:1/-1;}
+    /* 詳細のカテゴリ・チェックリストを2カラムに（縦スクロール削減） */
+    #cats{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 16px;align-items:start;}
+    #cats .cat{margin:0;}
+    #cats .catalog-info{grid-column:1/-1;} /* 注記は全幅 */
+  }
 </style>
 </head>
 <body>
