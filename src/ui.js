@@ -315,10 +315,16 @@ document.getElementById("btnReload").onclick=()=>location.reload();
 /* 新規記録FAB：上部の新規ボタンが見えない時だけ右下に表示（動作は上部ボタンと同一） */
 document.getElementById("fabNew").onclick=()=>document.getElementById("btnNew").click();
 (function(){
-  const topBtn=document.getElementById("btnNew");
-  if("IntersectionObserver" in window){
-    new IntersectionObserver(es=>{ fabNewTopVisible=es[0].isIntersecting; updateFabNew(); },{threshold:0}).observe(topBtn);
+  const topBtn=document.getElementById("btnNew"), header=document.querySelector("header");
+  // スティッキーなヘッダー下端を基準に判定（ヘッダー背面に隠れた瞬間にFAB表示）
+  function checkTopBtn(){
+    const hb=header?header.getBoundingClientRect().bottom:0;
+    const r=topBtn.getBoundingClientRect();
+    fabNewTopVisible = r.bottom > hb; updateFabNew();
   }
+  window.addEventListener("scroll",checkTopBtn,{passive:true});
+  window.addEventListener("resize",checkTopBtn);
+  checkTopBtn();
 })();
 
 /* pull-to-refresh：一覧ビューの最上部で下に引くとリロード */
