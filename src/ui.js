@@ -22,7 +22,31 @@ function switchView(v){
   window.scrollTo(0,0);
 }
 
+/* 一覧上部のサマリー（統計＋保存/書出注記）。カセットが増えても最初に見え、スクロールで上へ流れて消える */
+function renderHero(){
+  const host=document.getElementById("listHero"); if(!host)return;
+  const ss=store.sessions;
+  const note=`<div class="hero-note">記録はこの端末（ブラウザ）に保存されます。端末変更・バックアップは右上の<b>「書出」</b>でJSON保存、<b>「読込」</b>で復元。</div>`;
+  if(ss.length===0){ host.innerHTML=note; return; }
+  const makers=new Set(ss.map(makerKey)).size;
+  const latest=ss.map(s=>s.date).filter(Boolean).sort().slice(-1)[0]||"—";
+  let ratedSum=0,goldSum=0,best=null;
+  ss.forEach(s=>{ const st=sessStat(s); ratedSum+=st.rated; goldSum+=st.gold;
+    if(st.avg!==null && (!best||st.avg>best.avg)) best={avg:st.avg,s}; });
+  const tiles=`<div class="hero-tiles">
+    <div class="htile"><div class="hn">${ss.length}</div><div class="hl">試聴</div></div>
+    <div class="htile"><div class="hn">${makers}</div><div class="hl">メーカー</div></div>
+    <div class="htile"><div class="hn">${ratedSum}</div><div class="hl">評価済み曲</div></div>
+    <div class="htile"><div class="hn gold">◎${goldSum}</div><div class="hl">理想評価</div></div>
+  </div>`;
+  const top=best?`<div class="hero-top"><span class="ht-lbl">総合トップ</span>
+    <span class="ht-name">${esc((best.s.maker?best.s.maker+" ":"")+(best.s.iem||"(機種名なし)"))}</span>
+    <span class="ht-avg t-${tone(best.avg)}">${avgSym(best.avg)} ${best.avg.toFixed(2)}</span></div>`:"";
+  host.innerHTML=`<div class="hero-head">AUDITION SUMMARY · 直近 ${esc(latest)}</div>${tiles}${top}${note}`;
+}
+
 function renderList(){
+  renderHero();
   const wrap=document.getElementById("sessions");
   const list=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")|| (b.createdAt-a.createdAt));
   if(list.length===0){
