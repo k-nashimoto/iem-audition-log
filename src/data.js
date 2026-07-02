@@ -5,7 +5,7 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const CATALOG_VERSION="2.2";
+const CATALOG_VERSION="2.3";
 const CATEGORIES=[
   {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
    point:"深いシール確保／左右の低域量の一致／遮音／ノイズフロア。備考に使用イヤピース（サイズ・型番）を記録。"},
@@ -44,7 +44,7 @@ const TRACKS=[
   {id:"first-love",cat:"01",sub:"01a",t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"艶＋録音由来のサ行を増幅するか"},
   {id:"love-wins-all",cat:"01",sub:"01a",t:"Love wins all — IU",a:"繊細な高域の声・ラスサビの伸び"},
   {id:"melody",cat:"01",sub:"01b",t:"メロディー — 玉置浩二",a:"ア・カペラ序盤の温度、サビの艶維持"},
-  {id:"kataomoi",cat:"01",sub:"01b→05b",core:true,t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（男性ではないが一発録りの生声・余韻の基準曲）"},
+  {id:"kataomoi",cat:"01",sub:"01a→05b",core:true,t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（一発録りの生声・余韻の基準曲）"},
   {id:"odo",cat:"02",core:true,t:"踊 — Ado",a:"叫び・エッジで痛みが出たら即減点"},
   {id:"idol",cat:"02",t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
   {id:"i-am",cat:"02",t:"I AM — IVE",a:"高音圧マスターで団子にならないか"},
