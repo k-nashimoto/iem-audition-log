@@ -120,7 +120,7 @@ function renderCats(){
       html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
         <div class="trk-row"><div class="trk-info"><div class="trk-t">${star}${subb}${esc(title)}</div>${artist?`<div class="trk-artist">${esc(artist)}</div>`:""}<div class="trk-a">${esc(trk.a)}</div></div>
         <div class="rate">${chips}</div></div>
-        <button class="memo-toggle" data-mid="${id}">${note?'✎ メモあり':'＋ メモ'}</button>
+        <button class="memo-toggle ${note?'has':''}" data-mid="${id}">${note?'✎ メモを編集':'＋ メモを入力'}</button>
         <div class="memo ${op?'open':''}" id="memo-${id}"><textarea data-nid="${id}" placeholder="気づいた点（艶・刺さり・空間 など）">${esc(note)}</textarea></div>
       </div>`;
     });
@@ -158,7 +158,7 @@ function bindTracks(){
   });
   document.querySelectorAll("textarea[data-nid]").forEach(ta=>{
     ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value;
-      const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg)tg.textContent=ta.value?'✎ メモあり':'＋ メモ';
+      const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg){tg.textContent=ta.value?'✎ メモを編集':'＋ メモを入力';tg.classList.toggle('has',!!ta.value);}
       autoGrow(ta); persist(false); };
     ta.onblur=()=>persist(true);
     if(ta.value && ta.closest(".memo.open")) autoGrow(ta); /* 再表示時、保存済みメモを全文表示 */
