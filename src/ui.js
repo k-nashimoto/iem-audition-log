@@ -2,6 +2,12 @@ import { CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, sub
 import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
 
 /* ---------- VIEWS ---------- */
+let fabNewTopVisible=true; // 上部「新規試聴を記録」ボタンが可視か
+function updateFabNew(){
+  const fab=document.getElementById("fabNew"); if(!fab)return;
+  const listActive=document.getElementById("viewList").classList.contains("active");
+  fab.classList.toggle("show", listActive && !fabNewTopVisible); // 一覧かつ上部ボタンが見えない時のみ表示
+}
 function switchView(v){
   document.getElementById("viewList").classList.toggle("active",v==="list");
   document.getElementById("viewDetail").classList.toggle("active",v==="detail");
@@ -13,13 +19,15 @@ function switchView(v){
   fab.classList.toggle("show", v==="detail");
   if(v==="detail"){ fab.style.opacity="1"; fab.style.pointerEvents="auto"; } /* 表示時は既定で表示 */
   const titles={
-    list:'<div class="h-title">試聴ログ<span class="sub">AUDITION LOG · PERSONAL REFERENCE</span></div>',
+    list:'<div class="h-title">オーディオ試聴ログ<span class="sub">AUDIO AUDITION LOG · PERSONAL REFERENCE</span></div>',
     detail:'<div class="h-title">試聴チェック</div>',
     compare:'<div class="h-title">機種比較<span class="sub">COMPARE · MATRIX</span></div>',
   };
   document.getElementById("hLeft").innerHTML = titles[v]||titles.list;
   document.querySelector("header").classList.toggle("v-detail", v==="detail"); /* タイトル中央寄せ用 */
   window.scrollTo(0,0);
+  if(v==="list") fabNewTopVisible=true; // 最上部へ戻したので上部ボタンは可視
+  updateFabNew();
 }
 
 /* 一覧上部のサマリー（統計＋保存/書出注記）。カセットが増えても最初に見え、スクロールで上へ流れて消える */
@@ -303,6 +311,15 @@ if("IntersectionObserver" in window){
 
 /* 更新ボタン：最新を取得してリロード（standalone用） */
 document.getElementById("btnReload").onclick=()=>location.reload();
+
+/* 新規記録FAB：上部の新規ボタンが見えない時だけ右下に表示（動作は上部ボタンと同一） */
+document.getElementById("fabNew").onclick=()=>document.getElementById("btnNew").click();
+(function(){
+  const topBtn=document.getElementById("btnNew");
+  if("IntersectionObserver" in window){
+    new IntersectionObserver(es=>{ fabNewTopVisible=es[0].isIntersecting; updateFabNew(); },{threshold:0}).observe(topBtn);
+  }
+})();
 
 /* pull-to-refresh：一覧ビューの最上部で下に引くとリロード */
 (function(){

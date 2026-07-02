@@ -1,5 +1,5 @@
 {
-  "name": "IEM 試聴ログ",
+  "name": "オーディオ試聴ログ",
   "short_name": "試聴ログ",
   "start_url": "./iem-audition-log.html",
   "scope": "./",
