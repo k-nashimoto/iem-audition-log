@@ -124,6 +124,7 @@ function openSession(id){
   document.getElementById("fApp").value=s.app||"";
   fillCodec(document.getElementById("fCodec"),s.codec);
   document.getElementById("fCable").value=s.cable||"";
+  document.getElementById("fSummary").value=s.summary||"";
   setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
   growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
@@ -131,6 +132,7 @@ function openSession(id){
 /* 表示中の開いたメモtextareaを内容の高さに合わせる */
 function growOpenMemos(){
   document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
+  const sum=document.getElementById("fSummary"); if(sum && sum.value) autoGrow(sum); /* 総評メモも全文高さへ */
 }
 
 let coreOnly=false; /* ★店頭コアのみ表示（一次スクリーニング用） */
@@ -229,6 +231,11 @@ function updateMeter(){
   document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
   document.getElementById(idn).addEventListener("blur",()=>persist(true));
 });
+/* 総評メモ（session単位の自由記述・自動保存・自動リサイズ） */
+(function(){ const ta=document.getElementById("fSummary");
+  ta.addEventListener("input",()=>{ const s=active(); if(s){ s.summary=ta.value; autoGrow(ta); persist(false);} });
+  ta.addEventListener("blur",()=>persist(true));
+})();
 document.getElementById("btnCoreOnly").onclick=()=>{
   coreOnly=!coreOnly;
   document.getElementById("btnCoreOnly").classList.toggle("on",coreOnly);

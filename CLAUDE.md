@@ -79,7 +79,7 @@
   - `sw.js` / `manifest.webmanifest` / `icon.svg` … PWA（オフライン・ホーム画面）。
   - JSは **ESモジュール**（`<script type="module">`）。**`http(s)` 提供が前提**：GitHub Pagesは可。`file://` 直開きは不可 → ローカル確認は `python3 -m http.server` 等で。
 - **保存**: ブラウザの `localStorage`、キー `audition-log-v1`。Claude.ai アーティファクト内では動かないが、ブラウザ/GitHub Pages では正常動作。
-- **データモデル**: `store = { sessions: [], activeId, compareIds:[], compareMakers?, cmpMode }`。各 session = `{ id, maker, iem, date, source, app, conn, codec, cable, catalogVersion, createdAt, ratings:{trackId}, notes:{trackId}, openMemo:{} }`。trackId は各曲の**安定slug**（例 `first-love`）。旧・位置ベース `"<カテゴリNo>-<index>"` は `OLD_ID_MAP` で移行。`maker`（メーカー）は機種名と別枠でメーカー別集計の基盤。
+- **データモデル**: `store = { sessions: [], activeId, compareIds:[], compareMakers?, cmpMode }`。各 session = `{ id, maker, iem, date, source, app, conn, codec, cable, catalogVersion, createdAt, ratings:{trackId}, notes:{trackId}, openMemo:{}, summary }`（`summary`＝機種単位の総評メモ・任意）。trackId は各曲の**安定slug**（例 `first-love`）。旧・位置ベース `"<カテゴリNo>-<index>"` は `OLD_ID_MAP` で移行。`maker`（メーカー）は機種名と別枠でメーカー別集計の基盤。
 - **画面**: 一覧ビュー（機種カード=メーカー・機種・日付・進捗・◎数）／詳細ビュー（メーカー・機種・日付・ソース・再生アプリ・接続方式編集＋カテゴリ別チェックリスト＋コアのみ表示）／比較ビュー（機種別／メーカー別モード、カテゴリ×平均のマトリクス、メーカー別は得意/注意の傾向）。
 - **書出/読込**: 全データの JSON エクスポート・インポート（端末移行・バックアップ用）。
 - **デプロイ**: GitHub Pages。リポジトリ `k-nashimoto/iem-audition-log`、`main` / `(root)`。
