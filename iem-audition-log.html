@@ -140,9 +140,10 @@
   .point{font-size:12px;color:var(--txt2);margin-top:6px;border-left:2px solid var(--line2);padding-left:9px;}
   .point::before{content:"確認 ";font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt3);}
   /* サブ観点の凡例 */
-  .cat-subs{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
-  .cat-subs .sl-lbl{font-size:11.5px;color:var(--txt);font-weight:600;margin:0 6px 0 5px;}
-  .cat-subs .sd{font-size:11px;color:var(--txt3);}
+  .cat-subs{margin-top:8px;display:flex;flex-direction:column;gap:4px;}
+  .cat-sub-row{font-size:11.5px;line-height:1.5;}
+  .cat-sub-row .sl-lbl{color:var(--cyan);font-weight:600;margin-right:7px;}
+  .cat-sub-row .sd{color:var(--txt3);}
   .subtag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--cyan);
     border:1px solid #2c4a52;background:rgba(127,199,212,.08);border-radius:4px;padding:1px 5px;vertical-align:1px;}
   .cat-hint{margin-top:8px;font-size:11.5px;color:var(--gold);background:rgba(201,168,106,.07);
@@ -475,7 +476,7 @@ const TRACKS=[
   {id:"mcml",cat:"05",sub:"05a/05b",t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"芯と消え際の切り分け"},
   {id:"olympic-fanfare",cat:"06",sub:"06a",core:true,t:"Olympic Fanfare — John Williams (Berlin Concert)",a:"立ち上がり速度・静→強レンジ"},
   {id:"kaizoku",cat:"06",sub:"06b",t:"彼こそが海賊（パイレーツ） — クラウス・バデルト",a:"強奏の飽和・うるささ"},
-  {id:"jurassic-park",cat:"06",sub:"06c",t:"Theme from Jurassic Park — John Williams (in Vienna)",a:"漸強・ホルンの温度と艶（05aも兼ねる）"},
+  {id:"jurassic-park",cat:"06",sub:"06c",t:"Theme from Jurassic Park — John Williams (in Vienna)",a:"漸強・ホルンの温度と艶（温度・実体型(A)も兼ねる）"},
   {id:"kick-back",cat:"07",core:true,t:"KICK BACK — 米津玄師",a:"混濁したら✕"},
   {id:"gunjo",cat:"07",t:"群青 — YOASOBI",a:"合唱の分離と一体感"},
   {id:"orange",cat:"07",t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"},
@@ -678,7 +679,7 @@ function renderCats(){
     if(tracks.length===0) return; // コアのみ表示でコア曲が無いカテゴリは省略
     const sec=document.createElement("section"); sec.className="cat";
     let pri=cat.pri?`<span class="pri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
-    let subsLegend=cat.subs?`<div class="cat-subs">${cat.subs.map(sd=>`<span class="subtag">${sd.code}</span><span class="sl-lbl">${esc(sd.label)}</span><span class="sd">${esc(sd.desc)}</span>`).join("")}</div>`:"";
+    let subsLegend=cat.subs?`<div class="cat-subs">${cat.subs.map(sd=>`<div class="cat-sub-row" title="${esc(sd.code)}"><span class="sl-lbl">${esc(sd.label)}</span><span class="sd">${esc(sd.desc)}</span></div>`).join("")}</div>`:"";
     let hint=cat.hint?`<div class="cat-hint">💡 ${esc(cat.hint)}</div>`:"";
     let live=cat.subs?subLiveSummary(cat,s):"";
     let html=`<div class="cat-h"><div class="cat-no">${cat.no}</div>
