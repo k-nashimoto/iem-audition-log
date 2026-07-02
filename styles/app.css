@@ -68,7 +68,28 @@
   .view.active{display:block;}
 
   /* List */
-  .btn-new{display:block;width:calc(100% - 32px);margin:16px auto;padding:15px;border-radius:var(--pill);
+  /* 一覧上部サマリー（統計＋注記） */
+  #listHero{margin:14px 16px 0;}
+  .hero-head{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--txt3);
+    text-transform:uppercase;margin:0 2px 8px;}
+  .hero-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .htile{background:var(--card);border-radius:8px;padding:12px 8px;text-align:center;min-width:0;}
+  .htile .hn{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--txt);line-height:1;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .htile .hn.gold{color:var(--gold);}
+  .htile .hl{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--txt2);margin-top:6px;}
+  .hero-top{display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--card);border-radius:8px;padding:10px 13px;}
+  .hero-top .ht-lbl{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--green);
+    text-transform:uppercase;flex:none;}
+  .hero-top .ht-name{font-size:13px;font-weight:700;color:var(--txt);flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .hero-top .ht-avg{font-family:var(--mono);font-size:13px;font-weight:700;flex:none;}
+  .hero-top .ht-avg.t-gold{color:var(--gold);}.hero-top .ht-avg.t-steel{color:var(--steel);}
+  .hero-top .ht-avg.t-caution{color:var(--caution);}.hero-top .ht-avg.t-bad{color:var(--bad);}
+  .hero-note{font-size:11px;color:var(--txt3);line-height:1.6;margin:11px 2px 2px;}
+  .hero-note b{color:var(--txt2);font-weight:600;}
+
+  .btn-new{display:block;width:calc(100% - 32px);margin:14px auto 16px;padding:15px;border-radius:var(--pill);
     background:var(--green);border:none;
     color:#000;font-family:var(--jp);font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.01em;
     transition:transform .12s ease,background .15s ease;}
