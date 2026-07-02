@@ -77,6 +77,8 @@
   .htile .hn{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--txt);line-height:1;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .htile .hn.gold{color:var(--gold);}
+  .htile .hn.t-gold{color:var(--gold);}.htile .hn.t-steel{color:var(--steel);}
+  .htile .hn.t-caution{color:var(--caution);}.htile .hn.t-bad{color:var(--bad);}
   .htile .hl{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--txt2);margin-top:6px;}
   .hero-top{display:flex;align-items:center;gap:9px;margin-top:8px;background:var(--card);border-radius:8px;padding:10px 13px;}
   .hero-top .ht-lbl{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;color:var(--green);
