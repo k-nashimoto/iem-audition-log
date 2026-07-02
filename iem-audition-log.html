@@ -154,6 +154,9 @@
   .cat-sublive .t-caution{color:var(--caution);}.cat-sublive .t-bad{color:var(--bad);}
   .trk-t .core{color:var(--gold);margin-right:5px;}
   .trk-t .subtag{margin-right:6px;}
+  .catalog-info{margin:16px 16px 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;
+    color:var(--txt3);line-height:1.7;border-top:1px solid var(--line);padding-top:11px;}
+  .catalog-info b{color:var(--caution);}
   /* 店頭コアモード トグル */
   .core-toggle{margin:14px 16px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
   .core-toggle .seg-btn{flex:none;padding:9px 14px;}
@@ -409,75 +412,79 @@
 <button class="fab-back" id="fabBack" aria-label="一覧へ戻る"><span class="ar">‹</span> 一覧</button>
 
 <script>
-/* 試聴リスト v2.2。各 track は安定 id を持つ（曲リスト変更でも評価が迷子にならない）。
-   sub=サブ観点コード / core=★店頭コア7 / a=注目ポイント。 */
-const CATS = [
+/* ===== カタログ（曲リスト定義）と評価データを分離 =====
+   ・CATEGORIES … カテゴリ定義（メタ）
+   ・TRACKS     … 曲リスト（source of truth）。cat で所属カテゴリを参照。id は安定slug。
+   ・CATS       … 上2つを結合した描画用ビュー（既存の描画/集計コードはこれを使う）
+   評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
+   曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
+   曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
+const CATALOG_VERSION="2.2";
+const CATEGORIES=[
   {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
-   point:"深いシール確保／左右の低域量の一致／遮音／ノイズフロア。備考に使用イヤピース（サイズ・型番）を記録。",
-   tracks:[
-    {id:"bad-guy",core:true,t:"bad guy — ビリー・アイリッシュ",a:"冒頭ベースの沈み・左右差・遮音。シールが甘いと真っ先に低域が痩せる"}]},
+   point:"深いシール確保／左右の低域量の一致／遮音／ノイズフロア。備考に使用イヤピース（サイズ・型番）を記録。"},
   {no:"01",title:"ボーカルの艶・生々しさ",pri:["最重視","top"],
    point:"声に体温・色気・口の動きの生々しさがあり、薄く冷たくならないか。",
    subs:[{code:"01a",label:"女性ボーカル",desc:"艶・湿度・ブレスの生々しさ"},
-         {code:"01b",label:"男性ボーカル",desc:"声の温度・胸の共鳴・中低域の厚み。VE10との補完性判定に使用"}],
-   tracks:[
-    {id:"sore-wo-ai",sub:"01a",t:"それを愛と呼ぶなら — Uru",a:"低めの声の温度・湿度"},
-    {id:"first-love",sub:"01a",t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"艶＋録音由来のサ行を増幅するか"},
-    {id:"love-wins-all",sub:"01a",t:"Love wins all — IU",a:"繊細な高域の声・ラスサビの伸び"},
-    {id:"melody",sub:"01b",t:"メロディー — 玉置浩二",a:"ア・カペラ序盤の温度、サビの艶維持"},
-    {id:"kataomoi",sub:"01b→05b",core:true,t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（男性ではないが一発録りの生声・余韻の基準曲）"}]},
+         {code:"01b",label:"男性ボーカル",desc:"声の温度・胸の共鳴・中低域の厚み。VE10との補完性判定に使用"}]},
   {no:"02",title:"キラキラ vs 刺さり",pri:["重要・感度","sens"],
-   point:"きらめき・空気感がありつつ刺さらないか。大音量の刺さり（踊）と小音量ウィスパーの「静かな刺さり」（EASY）の両方を確認。刺さり（サ行・8〜10kHzピーク）が出たら即減点、以降の評価を打ち切ってよい。",
-   tracks:[
-    {id:"odo",core:true,t:"踊 — Ado",a:"叫び・エッジで痛みが出たら即減点"},
-    {id:"idol",t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
-    {id:"i-am",t:"I AM — IVE",a:"高音圧マスターで団子にならないか"},
-    {id:"easy",t:"EASY — LE SSERAFIM",a:"静かな刺さり（小音量サ行）"}]},
+   point:"きらめき・空気感がありつつ刺さらないか。大音量の刺さり（踊）と小音量ウィスパーの「静かな刺さり」（EASY）の両方を確認。刺さり（サ行・8〜10kHzピーク）が出たら即減点、以降の評価を打ち切ってよい。"},
   {no:"03",title:"締まったグルーヴ低域",pri:null,
-   point:"キックの締まり／ベースラインの音程追従性／boomyなら✕。量より質。",
-   tracks:[
-    {id:"get-lucky",t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
-    {id:"sun",core:true,t:"SUN — 星野源",a:"ベースラインの音程追従性"},
-    {id:"ditto",t:"Ditto — NewJeans",a:"低域が緩いと曇る（雰囲気チェック）"}]},
+   point:"キックの締まり／ベースラインの音程追従性／boomyなら✕。量より質。"},
   {no:"04",title:"包まれる没入・空間スケール",pri:["決定軸","axis"],
    point:"音が前方だけでなく頭の周囲・上下・後方に回り込み、ホールにいる没入が出るか。",
    subs:[{code:"04a",label:"ホール残響型",desc:"残響が後方・上方へ回り込むか"},
          {code:"04b",label:"音壁型",desc:"積層する音に包囲されるか、サブベースの床の沈み"},
          {code:"04c",label:"コーラス包囲型",desc:"声が360°を取り囲むか"}],
-   hint:"◎は 04a/04b/04c の3タイプすべて○以上が条件。",
-   tracks:[
-    {id:"merry-go-round",sub:"04a",t:"Merry-Go-Round of Life（ハウル） — 久石譲 & ロイヤル・フィル",a:"残響の後方回り込み"},
-    {id:"time",sub:"04b",core:true,t:"Time — Hans Zimmer",a:"音壁の包囲・サブベースの床"},
-    {id:"inisie-no-uta",sub:"04c",t:"イニシエノウタ — NieR:Automata",a:"コーラスの360°包囲"},
-    {id:"hedwig",t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"チェレスタのきらめき＋奥行き"},
-    {id:"ashitaka",t:"アシタカとサン — 久石譲",a:"弦のうねり・大編成スケール"}]},
+   hint:"◎は 04a/04b/04c の3タイプすべて○以上が条件。"},
   {no:"05",title:"生音感（実在感・空気・余韻）",pri:null,
    point:"楽器がその空間で鳴り、倍音と余韻が自然に減衰していく実在感。VE10=(A)型、2台目候補は(B)型の強さを重点確認。",
    subs:[{code:"05a",label:"温度・実体型(A)",desc:"打鍵の芯・木質感・金管の温度"},
-         {code:"05b",label:"空気・余韻型(B)",desc:"余韻の消え際・倍音のきらめき・部屋鳴り"}],
-   tracks:[
-    {id:"one-summers-day",sub:"05a+05b",t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"打鍵の芯と余韻の両立"},
-    {id:"mcml",sub:"05a/05b",t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"芯と消え際の切り分け"}]},
+         {code:"05b",label:"空気・余韻型(B)",desc:"余韻の消え際・倍音のきらめき・部屋鳴り"}]},
   {no:"06",title:"ダイナミクス・強奏",pri:null,
    point:"強奏で圧縮されず physical に伸びるか、混雑しても崩れず分離を保つか。",
    subs:[{code:"06a",label:"立ち上がり",desc:"ファンファーレの瞬発力"},
          {code:"06b",label:"飽和耐性",desc:"強奏でうるさくならないか"},
-         {code:"06c",label:"漸強クレッシェンド",desc:"音量上昇中に音場が広がり続けるか、天井に張り付かないか"}],
-   tracks:[
-    {id:"olympic-fanfare",sub:"06a",core:true,t:"Olympic Fanfare — John Williams (Berlin Concert)",a:"立ち上がり速度・静→強レンジ"},
-    {id:"kaizoku",sub:"06b",t:"彼こそが海賊（パイレーツ） — クラウス・バデルト",a:"強奏の飽和・うるささ"},
-    {id:"jurassic-park",sub:"06c",t:"Theme from Jurassic Park — John Williams (in Vienna)",a:"漸強・ホルンの温度と艶（05aも兼ねる）"}]},
+         {code:"06c",label:"漸強クレッシェンド",desc:"音量上昇中に音場が広がり続けるか、天井に張り付かないか"}]},
   {no:"07",title:"解像・分離・一体感",pri:null,
-   point:"情報過多ミックスの混濁チェック／合唱の「分離しつつ一体」。",
-   tracks:[
-    {id:"kick-back",core:true,t:"KICK BACK — 米津玄師",a:"混濁したら✕"},
-    {id:"gunjo",t:"群青 — YOASOBI",a:"合唱の分離と一体感"},
-    {id:"orange",t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"}]},
+   point:"情報過多ミックスの混濁チェック／合唱の「分離しつつ一体」。"},
   {no:"EX",title:"番外（愛着枠）",pri:null,
-   point:"評価軸ではなく愛着枠。Apple Musicのみ。",
-   tracks:[
-    {id:"jokyoku-march",t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"}]},
+   point:"評価軸ではなく愛着枠。Apple Musicのみ。"},
 ];
+/* 曲リスト（source of truth）。改訂はこの配列を編集するだけ。 */
+const TRACKS=[
+  {id:"bad-guy",cat:"00",core:true,t:"bad guy — ビリー・アイリッシュ",a:"冒頭ベースの沈み・左右差・遮音。シールが甘いと真っ先に低域が痩せる"},
+  {id:"sore-wo-ai",cat:"01",sub:"01a",t:"それを愛と呼ぶなら — Uru",a:"低めの声の温度・湿度"},
+  {id:"first-love",cat:"01",sub:"01a",t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"艶＋録音由来のサ行を増幅するか"},
+  {id:"love-wins-all",cat:"01",sub:"01a",t:"Love wins all — IU",a:"繊細な高域の声・ラスサビの伸び"},
+  {id:"melody",cat:"01",sub:"01b",t:"メロディー — 玉置浩二",a:"ア・カペラ序盤の温度、サビの艶維持"},
+  {id:"kataomoi",cat:"01",sub:"01b→05b",core:true,t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（男性ではないが一発録りの生声・余韻の基準曲）"},
+  {id:"odo",cat:"02",core:true,t:"踊 — Ado",a:"叫び・エッジで痛みが出たら即減点"},
+  {id:"idol",cat:"02",t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
+  {id:"i-am",cat:"02",t:"I AM — IVE",a:"高音圧マスターで団子にならないか"},
+  {id:"easy",cat:"02",t:"EASY — LE SSERAFIM",a:"静かな刺さり（小音量サ行）"},
+  {id:"get-lucky",cat:"03",t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
+  {id:"sun",cat:"03",core:true,t:"SUN — 星野源",a:"ベースラインの音程追従性"},
+  {id:"ditto",cat:"03",t:"Ditto — NewJeans",a:"低域が緩いと曇る（雰囲気チェック）"},
+  {id:"merry-go-round",cat:"04",sub:"04a",t:"Merry-Go-Round of Life（ハウル） — 久石譲 & ロイヤル・フィル",a:"残響の後方回り込み"},
+  {id:"time",cat:"04",sub:"04b",core:true,t:"Time — Hans Zimmer",a:"音壁の包囲・サブベースの床"},
+  {id:"inisie-no-uta",cat:"04",sub:"04c",t:"イニシエノウタ — NieR:Automata",a:"コーラスの360°包囲"},
+  {id:"hedwig",cat:"04",t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"チェレスタのきらめき＋奥行き"},
+  {id:"ashitaka",cat:"04",t:"アシタカとサン — 久石譲",a:"弦のうねり・大編成スケール"},
+  {id:"one-summers-day",cat:"05",sub:"05a+05b",t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"打鍵の芯と余韻の両立"},
+  {id:"mcml",cat:"05",sub:"05a/05b",t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"芯と消え際の切り分け"},
+  {id:"olympic-fanfare",cat:"06",sub:"06a",core:true,t:"Olympic Fanfare — John Williams (Berlin Concert)",a:"立ち上がり速度・静→強レンジ"},
+  {id:"kaizoku",cat:"06",sub:"06b",t:"彼こそが海賊（パイレーツ） — クラウス・バデルト",a:"強奏の飽和・うるささ"},
+  {id:"jurassic-park",cat:"06",sub:"06c",t:"Theme from Jurassic Park — John Williams (in Vienna)",a:"漸強・ホルンの温度と艶（05aも兼ねる）"},
+  {id:"kick-back",cat:"07",core:true,t:"KICK BACK — 米津玄師",a:"混濁したら✕"},
+  {id:"gunjo",cat:"07",t:"群青 — YOASOBI",a:"合唱の分離と一体感"},
+  {id:"orange",cat:"07",t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"},
+  {id:"jokyoku-march",cat:"EX",t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"},
+];
+/* 描画・集計用ビュー（カテゴリ定義＋所属トラックを結合） */
+const CATS=CATEGORIES.map(c=>({...c,tracks:TRACKS.filter(t=>t.cat===c.no)}));
+/* 現行カタログに存在する track id の集合（孤児評価の判定に使用） */
+const CATALOG_IDS=new Set(TRACKS.map(t=>t.id));
 /* 旧・位置ベースID → 新・安定ID の移行表（null=v2.2で除外した曲＝評価破棄） */
 const OLD_ID_MAP={
   "00-0":"bad-guy",
@@ -538,8 +545,11 @@ function showFlash(msg){
 }
 function active(){ return store.sessions.find(s=>s.id===store.activeId); }
 function today(){ return new Date().toISOString().slice(0,10); }
-function progress(s){ return Object.keys(s.ratings||{}).length; }
-function goldCount(s){ return Object.values(s.ratings||{}).filter(r=>r==="◎").length; }
+/* 現行カタログに含まれる評価だけを対象にする（孤児=旧リストの曲は集計から除外・保持はする） */
+function catalogRatingValues(s){ const r=s.ratings||{}; return Object.keys(r).filter(k=>CATALOG_IDS.has(k)).map(k=>r[k]); }
+function orphanCount(s){ return Object.keys(s.ratings||{}).filter(k=>!CATALOG_IDS.has(k)).length; }
+function progress(s){ return catalogRatingValues(s).length; }
+function goldCount(s){ return catalogRatingValues(s).filter(r=>r==="◎").length; }
 /* 接続方式の表示テキスト（無線=コーデック / 有線=ケーブル） */
 function connText(s){
   if(s.conn==="wireless") return s.codec?("無線 · "+s.codec):"無線";
@@ -683,6 +693,13 @@ function renderCats(){
     });
     sec.innerHTML=html; host.appendChild(sec);
   });
+  // カタログ版・孤児評価の注記
+  let info=`試聴リスト v${esc(CATALOG_VERSION)}`;
+  if(s.catalogVersion && s.catalogVersion!==CATALOG_VERSION) info+=`（この記録は v${esc(s.catalogVersion)} で採点）`;
+  const oc=orphanCount(s);
+  if(oc>0) info+=`<br>⚠ 現行リストにない評価が <b>${oc}件</b> あります（旧バージョンの曲）。集計からは除外していますが、データは保持され書出にも含まれます。`;
+  const infoEl=document.createElement("div"); infoEl.className="catalog-info"; infoEl.innerHTML=info;
+  host.appendChild(infoEl);
   bindTracks();
 }
 
@@ -772,6 +789,7 @@ document.getElementById("mStart").onclick=()=>{
     conn,
     codec:conn==="wireless"?document.getElementById("mCodec").value:"",
     cable:conn==="wired"?document.getElementById("mCable").value.trim():"",
+    catalogVersion:CATALOG_VERSION, /* 採点時の曲リスト版を記録 */
     createdAt:Date.now(),ratings:{},notes:{},openMemo:{}};
   store.sessions.push(s); persist(true); modal.classList.remove("open"); openSession(s.id);
 };
@@ -829,7 +847,7 @@ function catStat(s,cat){
   return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:cat.tracks.length};
 }
 function sessStat(s){
-  const rs=Object.values(s.ratings||{});
+  const rs=catalogRatingValues(s); // 孤児評価は除外
   if(rs.length===0) return {avg:null,gold:0,rated:0,total:TOTAL};
   const sum=rs.reduce((a,r)=>a+SCORE[r],0);
   return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:TOTAL};
@@ -853,7 +871,7 @@ function aggCatStat(sessions,cat){
 }
 function aggSessStat(sessions){
   let sum=0,n=0,gold=0; const total=TOTAL*sessions.length;
-  sessions.forEach(s=>Object.values(s.ratings||{}).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; }));
+  sessions.forEach(s=>catalogRatingValues(s).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; }));
   return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
 }
 /* 得意（最高avg）・注意（最低avg）カテゴリを抽出 */
