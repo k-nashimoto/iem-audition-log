@@ -42,6 +42,11 @@ spacing:
 Spotify-inspired visual language, adapted for logging and comparing IEM auditions.
 Tokens above are the normative values; the prose below explains *why* and *how* to apply them.
 
+> **適用上の優先順位（重要）**: 本ファイルは*ビジュアル言語*（色・タイポ・コンポーネントの型）の規範だが、
+> このアプリの実体（オフライン維持・外部依存なし・モバイルファースト）と衝突する場合は
+> **`CLAUDE.md`（§5 構造・§6 適用方針・§7 制約）が優先**する。アプリ固有の逸脱は末尾
+> **「§10. このアプリでの適応」**にまとめてある。§1〜§9 を読む前提知識として先に §10 を確認すること。
+
 ## 1. Visual Theme & Atmosphere
 
 Dark, immersive, content-first — a premium late-night listening session. The canvas is a
@@ -171,3 +176,26 @@ text `#FFFFFF` / subdued `#B3B3B3` · input/border `#2A2A2A`.
 
 **Rule for the agent:** use only the tokens defined above. If a value is missing, infer from the
 nearest token and keep green functional-only.
+
+## 10. このアプリでの適応（Adaptation for iem-audition-log）
+
+§1〜§9 は汎用テンプレートのため、本アプリの制約・仕様と一部相反する。**相反時はここ／`CLAUDE.md` が優先**。
+以下は確定済みの逸脱（決定経緯は `ROADMAP.md` 決定ログ 2026-07-02）。
+
+- **フォント（§3 を上書き）**: Circular / Montserrat は**採用しない**。外部読込は
+  `CLAUDE.md §7`（オフライン維持・外部依存なし）に反するため。実体は
+  `system-ui + 日本語システムフォント`（`--jp`）、数値・ラベルは等幅 `--mono`（instrument readout）。
+  → §3・§9 の「Circular/Montserrat」「ship Montserrat」は本アプリでは無効。
+- **レイアウト（§5・§8 を上書き）**: 左 nav レール／下部タブバー／`~1150px` 幅／カードグリッド／
+  アートワーク＋動的アクセント（`Accent Dynamic`）ヘッダーは**現行未採用**。本アプリは
+  **モバイルファーストの単一カラム・3ビュー**（一覧／詳細／比較）、`body` 幅は
+  `680px`（≥768で `860px` / ≥1024で `1000px`＋一部2カラム）。これらデスクトップ・レイアウトは
+  将来検討の参考であり、現構造（`CLAUDE.md §5`）が優先。
+- **評価配色・色付きボーダー（§2・§4・§7 の一部を上書き）**: 「rating fill = green」「no colored
+  borders」は**評価ドメインには適用しない**（判別性優先＝オーナー選択「機能色は保持」）。
+  評価記号 ◎=`--gold` / ○=`--steel` / △=`--caution` / ✕=`--bad`、優先度タグ・サブ観点タグ・
+  カテゴリ左帯/番号・比較ビューのシンボル/バーは金/鋼/シアン/警告色（色枠含む）を維持。
+  **green は主要CTA・アクティブ/選択・進捗フィルに限定**（この点は §7 と一致）。装飾目的の
+  steel/cyan はグレースケール化済み。
+- **タイポ寸法（§3 のスケールを縮小適用）**: Display 48px / H1 32px 等はデスクトップ級の指針。
+  本アプリはモバイル圧縮寸法で運用（ウェイト・字間・階層の考え方は踏襲、絶対値は縮小）。
