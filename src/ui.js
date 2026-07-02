@@ -301,6 +301,42 @@ if("IntersectionObserver" in window){
   },{passive:true});
 })();
 
+/* 更新ボタン：最新を取得してリロード（standalone用） */
+document.getElementById("btnReload").onclick=()=>location.reload();
+
+/* pull-to-refresh：一覧ビューの最上部で下に引くとリロード */
+(function(){
+  const ind=document.createElement("div"); ind.className="ptr";
+  ind.innerHTML='<span class="ptr-ic">↓</span><span class="ptr-tx">引っ張って更新</span>';
+  document.body.appendChild(ind);
+  const tx=ind.querySelector(".ptr-tx"), TH=70;
+  let startY=0,pulling=false,dist=0;
+  const atTop=()=>(window.scrollY||document.documentElement.scrollTop||0)<=0;
+  const listActive=()=>document.getElementById("viewList").classList.contains("active");
+  const reset=()=>{ ind.style.transition="transform .2s ease"; ind.style.transform=""; ind.classList.remove("ready"); };
+  window.addEventListener("touchstart",e=>{
+    pulling=false;
+    if(e.touches.length!==1 || !listActive() || document.querySelector(".modal.open") || !atTop()) return;
+    startY=e.touches[0].clientY; pulling=true; dist=0;
+    ind.style.top=document.querySelector("header").getBoundingClientRect().bottom+"px";
+  },{passive:true});
+  window.addEventListener("touchmove",e=>{
+    if(!pulling) return;
+    dist=e.touches[0].clientY-startY;
+    if(dist<=0 || !atTop()){ if(!atTop())pulling=false; reset(); return; }
+    e.preventDefault(); // 上部での下引きはページのラバーバンドを抑制
+    ind.style.transition="none";
+    ind.style.transform="translateY("+(Math.min(dist*0.6,54)-46)+"px)";
+    const ready=dist>TH; ind.classList.toggle("ready",ready);
+    tx.textContent=ready?"離して更新":"引っ張って更新";
+  },{passive:false});
+  window.addEventListener("touchend",()=>{
+    if(!pulling) return; pulling=false;
+    if(dist>TH){ ind.classList.add("spin"); tx.textContent="更新中…"; ind.style.transition="transform .15s ease"; ind.style.transform="translateY(8px)"; location.reload(); }
+    else reset();
+  },{passive:true});
+})();
+
 /* compare */
 function tone(avg){
   if(avg===null) return null;
