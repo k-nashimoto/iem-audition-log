@@ -8,7 +8,7 @@
 ## 1. プロジェクト概要
 
 オーナー（梨本健太）が、ハイエンドIEM（イヤモニ）を試聴・比較し、評価を蓄積するための個人ツール。
-現状は単一HTMLの「試聴ログ」アプリ（`iem-audition-log.html`）。GitHub Pages でホストし、iPhoneのホーム画面から起動して店頭試聴で使う。
+「試聴ログ」アプリ（`iem-audition-log.html` ＋ `styles/` ＋ `src/`）。ビルド工程なし・外部依存なしのHTML/CSS/ESモジュール構成。GitHub Pages でホストし、iPhoneのホーム画面から起動して店頭試聴で使う（Service Workerでオフライン動作）。
 
 最終目標（段階的に実現。詳細は `ROADMAP.md`）:
 1. 試聴データの蓄積・機種横断比較のシステム化
@@ -68,7 +68,15 @@
 
 ## 5. 現状の技術構成
 
-- **単一ファイル**: `iem-audition-log.html`（HTML+CSS+vanilla JS、ビルド工程なし、外部依存なし＝オフライン動作）。
+- **複数ファイル構成**（ビルド工程なし・外部依存なし）:
+  - `iem-audition-log.html` … マークアップのシェル（`styles/app.css` と `src/main.js` を読込。URL/ファイル名は据え置き）。
+  - `styles/app.css` … 全スタイル。
+  - `src/data.js` … データ層（カタログ `CATEGORIES`/`TRACKS`/`CATS`・定数・`OLD_ID_MAP` 等）。
+  - `src/core.js` … ロジック層（`store`・保存/移行・集計補助・DOM補助）。data.js に依存。
+  - `src/ui.js` … UI層（3ビュー描画・イベント・初期化）。data.js/core.js に依存。
+  - `src/main.js` … エントリ（ui.js 読込＋Service Worker登録）。
+  - `sw.js` / `manifest.webmanifest` / `icon.svg` … PWA（オフライン・ホーム画面）。
+  - JSは **ESモジュール**（`<script type="module">`）。**`http(s)` 提供が前提**：GitHub Pagesは可。`file://` 直開きは不可 → ローカル確認は `python3 -m http.server` 等で。
 - **保存**: ブラウザの `localStorage`、キー `audition-log-v1`。Claude.ai アーティファクト内では動かないが、ブラウザ/GitHub Pages では正常動作。
 - **データモデル**: `store = { sessions: [], activeId, compareIds:[], compareMakers?, cmpMode }`。各 session = `{ id, maker, iem, date, source, app, conn, codec, cable, catalogVersion, createdAt, ratings:{trackId}, notes:{trackId}, openMemo:{} }`。trackId は各曲の**安定slug**（例 `first-love`）。旧・位置ベース `"<カテゴリNo>-<index>"` は `OLD_ID_MAP` で移行。`maker`（メーカー）は機種名と別枠でメーカー別集計の基盤。
 - **画面**: 一覧ビュー（機種カード=メーカー・機種・日付・進捗・◎数）／詳細ビュー（メーカー・機種・日付・ソース・再生アプリ・接続方式編集＋カテゴリ別チェックリスト＋コアのみ表示）／比較ビュー（機種別／メーカー別モード、カテゴリ×平均のマトリクス、メーカー別は得意/注意の傾向）。
@@ -93,7 +101,8 @@
 
 ## 7. 作業上の約束（重要）
 
-- **オフライン動作を壊さない**（外部CDN/フォント/APIに無断で依存しない。フェーズ3で連携を入れる際は明示的に設計）。
+- **オフライン動作を壊さない**（外部CDN/フォント/APIに無断で依存しない。同梱の相対パスファイルのみ。ファイルを増減したら `sw.js` の `ASSETS` を更新。フェーズ3で連携を入れる際は明示的に設計）。
+- **単一ファイル制約は撤廃済み**（複数ファイル可）。ただしビルド工程なし・外部依存なし・push即反映・オフラインは維持する。
 - **localStorage の既存データを壊さない**（スキーマ変更時は移行処理 or バージョンキーを上げる。現行キー `audition-log-v1`）。
 - 変更後は GitHub Pages 反映前提なので、**コミット粒度を意識**し、壊れた状態を push しない。
 - 大きな機能追加は `ROADMAP.md` のフェーズに沿って段階的に。設計判断は `ROADMAP.md` の「決定ログ」に追記する。
