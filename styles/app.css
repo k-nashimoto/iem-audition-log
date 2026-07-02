@@ -268,6 +268,15 @@
     background:var(--field);border:1px solid transparent;border-radius:8px;padding:8px 10px;line-height:1.5;transition:box-shadow .12s ease;}/* 16px未満だとiOSで自動ズーム */
   .memo textarea::placeholder{color:var(--txt3);}
   .memo textarea:focus{outline:none;box-shadow:0 0 0 2px var(--green);}
+  /* 総評メモ（詳細画面の最下部・session単位） */
+  .summary-box{margin:18px 16px 0;background:var(--card);border-radius:10px;padding:13px 15px;}
+  .summary-box label{display:block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;
+    color:var(--txt2);text-transform:uppercase;margin-bottom:8px;}
+  .summary-box textarea{width:100%;min-height:84px;resize:vertical;overflow:hidden;font-family:var(--jp);font-size:16px;
+    color:var(--txt);background:var(--field);border:1px solid transparent;border-radius:8px;padding:9px 11px;line-height:1.6;
+    transition:box-shadow .12s ease;}/* 16px未満だとiOSで自動ズーム */
+  .summary-box textarea::placeholder{color:var(--txt3);}
+  .summary-box textarea:focus{outline:none;box-shadow:0 0 0 2px var(--green);}
 
   /* Modal */
   .modal{position:fixed;inset:0;background:rgba(6,8,11,.7);backdrop-filter:blur(4px);z-index:30;
