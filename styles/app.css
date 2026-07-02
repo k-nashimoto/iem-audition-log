@@ -58,6 +58,14 @@
   .fab-back:hover{border-color:var(--txt);}
   .fab-back .ar{font-size:17px;line-height:1;}
   .fab-back:active{transform:scale(.96);}
+  /* 新規記録FAB（一覧・上部ボタンが見えない時に表示。主要アクション＝green） */
+  .fab-new{position:fixed;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:25;
+    display:none;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;
+    background:var(--green);color:#000;border:none;font-size:30px;line-height:1;cursor:pointer;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .2s ease,background .15s ease;}
+  .fab-new.show{display:flex;}
+  .fab-new:hover{background:var(--green2);}
+  .fab-new:active{transform:scale(.94);}
 
   .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
   .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
