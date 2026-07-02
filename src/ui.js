@@ -100,7 +100,7 @@ function renderCats(){
   CATS.forEach(cat=>{
     const tracks = coreOnly ? cat.tracks.filter(t=>t.core) : cat.tracks;
     if(tracks.length===0) return; // コアのみ表示でコア曲が無いカテゴリは省略
-    const sec=document.createElement("section"); sec.className="cat";
+    const sec=document.createElement("section"); sec.className="cat"+(cat.pri?" pri-"+cat.pri[1]:"");
     let pri=cat.pri?`<span class="pri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
     let subsLegend=cat.subs?`<div class="cat-subs">${cat.subs.map(sd=>`<div class="cat-sub-row" title="${esc(sd.code)}"><span class="sl-lbl">${esc(sd.label)}</span><span class="sd">${esc(sd.desc)}</span></div>`).join("")}</div>`:"";
     let hint=cat.hint?`<div class="cat-hint">💡 ${esc(cat.hint)}</div>`:"";
