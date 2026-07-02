@@ -139,6 +139,25 @@
   .pri.seal{color:var(--txt2);border-color:var(--line2);background:rgba(159,176,196,.06);}
   .point{font-size:12px;color:var(--txt2);margin-top:6px;border-left:2px solid var(--line2);padding-left:9px;}
   .point::before{content:"確認 ";font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--txt3);}
+  /* サブ観点の凡例 */
+  .cat-subs{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
+  .cat-subs .sl-lbl{font-size:11.5px;color:var(--txt);font-weight:600;margin:0 6px 0 5px;}
+  .cat-subs .sd{font-size:11px;color:var(--txt3);}
+  .subtag{font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:var(--cyan);
+    border:1px solid #2c4a52;background:rgba(127,199,212,.08);border-radius:4px;padding:1px 5px;vertical-align:1px;}
+  .cat-hint{margin-top:8px;font-size:11.5px;color:var(--gold);background:rgba(201,168,106,.07);
+    border:1px solid #5a4a2a;border-radius:7px;padding:6px 9px;line-height:1.5;}
+  .cat-sublive{margin-top:7px;display:flex;flex-wrap:wrap;gap:10px;}
+  .cat-sublive .sl{font-family:var(--mono);font-size:11px;color:var(--txt3);}
+  .cat-sublive .sl b{color:var(--txt2);font-weight:600;margin-right:2px;}
+  .cat-sublive .t-gold{color:var(--gold);}.cat-sublive .t-steel{color:var(--steel);}
+  .cat-sublive .t-caution{color:var(--caution);}.cat-sublive .t-bad{color:var(--bad);}
+  .trk-t .core{color:var(--gold);margin-right:5px;}
+  .trk-t .subtag{margin-right:6px;}
+  /* 店頭コアモード トグル */
+  .core-toggle{margin:14px 16px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .core-toggle .seg-btn{flex:none;padding:9px 14px;}
+  .core-toggle .ct-note{font-size:11px;color:var(--txt3);}
 
   .trk{border-top:1px solid var(--line);padding:11px 15px 12px;}
   .trk-row{display:flex;align-items:flex-start;gap:11px;}
@@ -326,6 +345,11 @@
     </ul>
   </details>
 
+  <div class="core-toggle">
+    <button type="button" class="seg-btn" id="btnCoreOnly">★ 店頭コア7のみ</button>
+    <span class="ct-note">一次スクリーニング（1機種10分）向け</span>
+  </div>
+
   <main id="cats"></main>
   <footer>
     ◎=理想 / ○=良 / △=惜しい / ✕=合わない。評価とメモは自動保存されます。<br>
@@ -385,54 +409,86 @@
 <button class="fab-back" id="fabBack" aria-label="一覧へ戻る"><span class="ar">‹</span> 一覧</button>
 
 <script>
+/* 試聴リスト v2.2。各 track は安定 id を持つ（曲リスト変更でも評価が迷子にならない）。
+   sub=サブ観点コード / core=★店頭コア7 / a=注目ポイント。 */
 const CATS = [
   {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
-   point:"サブベースが痩せず地に足が付くか／無音時にヒス・低域漏れが無いか。",
+   point:"深いシール確保／左右の低域量の一致／遮音／ノイズフロア。備考に使用イヤピース（サイズ・型番）を記録。",
    tracks:[
-    {t:"bad guy — ビリー・アイリッシュ",a:"剥き出しのサブベース＋クリック。シールが甘いと真っ先に低域が痩せる（深いシールが決まるまで調整）"}]},
+    {id:"bad-guy",core:true,t:"bad guy — ビリー・アイリッシュ",a:"冒頭ベースの沈み・左右差・遮音。シールが甘いと真っ先に低域が痩せる"}]},
   {no:"01",title:"ボーカルの艶・生々しさ",pri:["最重視","top"],
    point:"声に体温・色気・口の動きの生々しさがあり、薄く冷たくならないか。",
+   subs:[{code:"01a",label:"女性ボーカル",desc:"艶・湿度・ブレスの生々しさ"},
+         {code:"01b",label:"男性ボーカル",desc:"声の温度・胸の共鳴・中低域の厚み。VE10との補完性判定に使用"}],
    tracks:[
-    {t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"親密な女性ボーカルの息遣いと色気"},
-    {t:"それを愛と呼ぶなら — Uru",a:"透明な女性ボーカルの質感・色気"},
-    {t:"プロローグ — Uru",a:"音数少なめ。声の艶が痩せないか"},
-    {t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"一発録りの生声。息遣い・艶の最強チェック"},
-    {t:"Love wins all — IU",a:"クリーンで情感的な女性ボーカル"}]},
+    {id:"sore-wo-ai",sub:"01a",t:"それを愛と呼ぶなら — Uru",a:"低めの声の温度・湿度"},
+    {id:"first-love",sub:"01a",t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"艶＋録音由来のサ行を増幅するか"},
+    {id:"love-wins-all",sub:"01a",t:"Love wins all — IU",a:"繊細な高域の声・ラスサビの伸び"},
+    {id:"melody",sub:"01b",t:"メロディー — 玉置浩二",a:"ア・カペラ序盤の温度、サビの艶維持"},
+    {id:"kataomoi",sub:"01b→05b",core:true,t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（男性ではないが一発録りの生声・余韻の基準曲）"}]},
   {no:"02",title:"キラキラ vs 刺さり",pri:["重要・感度","sens"],
-   point:"きらめき・空気感がありつつ刺さらないか。10〜20分で疲労が出ないか。",
+   point:"きらめき・空気感がありつつ刺さらないか。大音量の刺さり（踊）と小音量ウィスパーの「静かな刺さり」（EASY）の両方を確認。刺さり（サ行・8〜10kHzピーク）が出たら即減点、以降の評価を打ち切ってよい。",
    tracks:[
-    {t:"I AM — IVE",a:"明るく硬めのK-popマスタリング＝刺さりの負荷源"},
-    {t:"踊 — Ado",a:"高密度J-pop。サ行と高域の刺激"},
-    {t:"EASY — LE SSERAFIM",a:"シャープなハイハットとサ行"},
-    {t:"アイドル — YOASOBI",a:"高密度・明るいシンセとサ行"}]},
+    {id:"odo",core:true,t:"踊 — Ado",a:"叫び・エッジで痛みが出たら即減点"},
+    {id:"idol",t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
+    {id:"i-am",t:"I AM — IVE",a:"高音圧マスターで団子にならないか"},
+    {id:"easy",t:"EASY — LE SSERAFIM",a:"静かな刺さり（小音量サ行）"}]},
   {no:"03",title:"締まったグルーヴ低域",pri:null,
-   point:"締まってグルーヴを駆動するか、出すぎ/痩せず、アタックと減衰の輪郭。",
+   point:"キックの締まり／ベースラインの音程追従性／boomyなら✕。量より質。",
    tracks:[
-    {t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"タイトで踊れる低域のノリ"},
-    {t:"丸ノ内サディスティック — 椎名林檎",a:"ウッドベースの弾みと実体感"},
-    {t:"Ditto — NewJeans",a:"控えめで締まったベースのグルーヴ"}]},
+    {id:"get-lucky",t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
+    {id:"sun",core:true,t:"SUN — 星野源",a:"ベースラインの音程追従性"},
+    {id:"ditto",t:"Ditto — NewJeans",a:"低域が緩いと曇る（雰囲気チェック）"}]},
   {no:"04",title:"包まれる没入・空間スケール",pri:["決定軸","axis"],
    point:"音が前方だけでなく頭の周囲・上下・後方に回り込み、ホールにいる没入が出るか。",
+   subs:[{code:"04a",label:"ホール残響型",desc:"残響が後方・上方へ回り込むか"},
+         {code:"04b",label:"音壁型",desc:"積層する音に包囲されるか、サブベースの床の沈み"},
+         {code:"04c",label:"コーラス包囲型",desc:"声が360°を取り囲むか"}],
+   hint:"◎は 04a/04b/04c の3タイプすべて○以上が条件。",
    tracks:[
-    {t:"アシタカとサン — 久石譲",a:"雄大な管弦の包まれ感と高揚"},
-    {t:"Merry-Go-Round of Life（ハウル） — 久石譲 & ロイヤル・フィル",a:"管弦の抑揚と広がり"},
-    {t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"繊細な管弦が周囲に広がる立体感"}]},
+    {id:"merry-go-round",sub:"04a",t:"Merry-Go-Round of Life（ハウル） — 久石譲 & ロイヤル・フィル",a:"残響の後方回り込み"},
+    {id:"time",sub:"04b",core:true,t:"Time — Hans Zimmer",a:"音壁の包囲・サブベースの床"},
+    {id:"inisie-no-uta",sub:"04c",t:"イニシエノウタ — NieR:Automata",a:"コーラスの360°包囲"},
+    {id:"hedwig",t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"チェレスタのきらめき＋奥行き"},
+    {id:"ashitaka",t:"アシタカとサン — 久石譲",a:"弦のうねり・大編成スケール"}]},
   {no:"05",title:"生音感（実在感・空気・余韻）",pri:null,
-   point:"楽器がその空間で鳴り、倍音と余韻が自然に減衰していく実在感。",
+   point:"楽器がその空間で鳴り、倍音と余韻が自然に減衰していく実在感。VE10=(A)型、2台目候補は(B)型の強さを重点確認。",
+   subs:[{code:"05a",label:"温度・実体型(A)",desc:"打鍵の芯・木質感・金管の温度"},
+         {code:"05b",label:"空気・余韻型(B)",desc:"余韻の消え際・倍音のきらめき・部屋鳴り"}],
    tracks:[
-    {t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"管弦の各楽器の実体感とホールの空気・余韻"}]},
+    {id:"one-summers-day",sub:"05a+05b",t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"打鍵の芯と余韻の両立"},
+    {id:"mcml",sub:"05a/05b",t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"芯と消え際の切り分け"}]},
   {no:"06",title:"ダイナミクス・強奏",pri:null,
    point:"強奏で圧縮されず physical に伸びるか、混雑しても崩れず分離を保つか。",
+   subs:[{code:"06a",label:"立ち上がり",desc:"ファンファーレの瞬発力"},
+         {code:"06b",label:"飽和耐性",desc:"強奏でうるさくならないか"},
+         {code:"06c",label:"漸強クレッシェンド",desc:"音量上昇中に音場が広がり続けるか、天井に張り付かないか"}],
    tracks:[
-    {t:"彼こそが海賊（パイレーツ） — クラウス・バデルト",a:"疾走する強奏の畳みかけ"},
-    {t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"}]},
+    {id:"olympic-fanfare",sub:"06a",core:true,t:"Olympic Fanfare — John Williams (Berlin Concert)",a:"立ち上がり速度・静→強レンジ"},
+    {id:"kaizoku",sub:"06b",t:"彼こそが海賊（パイレーツ） — クラウス・バデルト",a:"強奏の飽和・うるささ"},
+    {id:"jurassic-park",sub:"06c",t:"Theme from Jurassic Park — John Williams (in Vienna)",a:"漸強・ホルンの温度と艶（05aも兼ねる）"}]},
   {no:"07",title:"解像・分離・一体感",pri:null,
-   point:"各音が分離しつつ、帯域の継ぎ目なく一体で鳴るか。混雑で潰れないか。",
+   point:"情報過多ミックスの混濁チェック／合唱の「分離しつつ一体」。",
    tracks:[
-    {t:"KICK BACK — 米津玄師",a:"高密度・多帯域でのまとまり"},
-    {t:"群青 — YOASOBI",a:"緻密に重なるレイヤリングと分離"},
-    {t:"オレンジ — SPYAIR",a:"バンドサウンドの各楽器の分離"}]},
+    {id:"kick-back",core:true,t:"KICK BACK — 米津玄師",a:"混濁したら✕"},
+    {id:"gunjo",t:"群青 — YOASOBI",a:"合唱の分離と一体感"},
+    {id:"orange",t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"}]},
+  {no:"EX",title:"番外（愛着枠）",pri:null,
+   point:"評価軸ではなく愛着枠。Apple Musicのみ。",
+   tracks:[
+    {id:"jokyoku-march",t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"}]},
 ];
+/* 旧・位置ベースID → 新・安定ID の移行表（null=v2.2で除外した曲＝評価破棄） */
+const OLD_ID_MAP={
+  "00-0":"bad-guy",
+  "01-0":"first-love","01-1":"sore-wo-ai","01-2":null,"01-3":"kataomoi","01-4":"love-wins-all",
+  "02-0":"i-am","02-1":"odo","02-2":"easy","02-3":"idol",
+  "03-0":"get-lucky","03-1":null,"03-2":"ditto",
+  "04-0":"ashitaka","04-1":"merry-go-round","04-2":"hedwig",
+  "05-0":"one-summers-day",
+  "06-0":"kaizoku","06-1":"jokyoku-march",
+  "07-0":"kick-back","07-1":"gunjo","07-2":"orange"
+};
 const RATES=["◎","○","△","✕"];
 const SCORE={"◎":4,"○":3,"△":2,"✕":1};
 /* 一般的なBluetoothオーディオコーデック（高音質→標準の順） */
@@ -454,6 +510,19 @@ function loadStore(){
   if(!Array.isArray(store.compareIds)) store.compareIds=[];
   /* compareMakers は未定義のまま（初回は全メーカー選択）。配列なら尊重 */
   if(store.cmpMode!=="maker") store.cmpMode="session";
+  store.sessions.forEach(migrateSession); /* 旧・位置ベースID → v2.2安定ID */
+}
+/* 旧IDキー（"01-0"等）を持つ ratings/notes/openMemo を安定IDへ移し替える（冪等） */
+function migrateSession(s){
+  ["ratings","notes","openMemo"].forEach(f=>{
+    const src=s[f]; if(!src||typeof src!=="object") return;
+    let changed=false; const out={};
+    for(const k in src){
+      if(k in OLD_ID_MAP){ changed=true; const nk=OLD_ID_MAP[k]; if(nk!=null) out[nk]=src[k]; } // null=除外曲は破棄
+      else out[k]=src[k];
+    }
+    if(changed) s[f]=out;
+  });
 }
 let saveTimer=null;
 function persist(flash){
@@ -469,7 +538,6 @@ function showFlash(msg){
 }
 function active(){ return store.sessions.find(s=>s.id===store.activeId); }
 function today(){ return new Date().toISOString().slice(0,10); }
-function tid(no,i){ return no+"-"+i; }
 function progress(s){ return Object.keys(s.ratings||{}).length; }
 function goldCount(s){ return Object.values(s.ratings||{}).filter(r=>r==="◎").length; }
 /* 接続方式の表示テキスト（無線=コーデック / 有線=ケーブル） */
@@ -575,21 +643,39 @@ function growOpenMemos(){
   document.querySelectorAll(".memo.open textarea[data-nid]").forEach(ta=>{ if(ta.value) autoGrow(ta); });
 }
 
+let coreOnly=false; /* ★店頭コアのみ表示（一次スクリーニング用） */
+/* サブ観点の現在の評価サマリー（例: 04a ◎ / 04b △ / 04c —） */
+function subLiveSummary(cat,s){
+  if(!cat.subs) return "";
+  return `<div class="cat-sublive">`+cat.subs.map(sd=>{
+    const rs=cat.tracks.filter(t=>t.sub&&t.sub.indexOf(sd.code)>=0).map(t=>(s.ratings||{})[t.id]).filter(Boolean);
+    if(rs.length===0) return `<span class="sl"><b>${sd.code}</b> —</span>`;
+    const avg=rs.reduce((a,r)=>a+SCORE[r],0)/rs.length, t=tone(avg);
+    return `<span class="sl"><b>${sd.code}</b> <span class="t-${t}">${avgSym(avg)}</span></span>`;
+  }).join("")+`</div>`;
+}
 function renderCats(){
   const s=active(); if(!s)return;
   s.ratings=s.ratings||{}; s.notes=s.notes||{}; s.openMemo=s.openMemo||{};
   const host=document.getElementById("cats"); host.innerHTML="";
   CATS.forEach(cat=>{
+    const tracks = coreOnly ? cat.tracks.filter(t=>t.core) : cat.tracks;
+    if(tracks.length===0) return; // コアのみ表示でコア曲が無いカテゴリは省略
     const sec=document.createElement("section"); sec.className="cat";
     let pri=cat.pri?`<span class="pri ${cat.pri[1]}">${cat.pri[0]}</span>`:"";
+    let subsLegend=cat.subs?`<div class="cat-subs">${cat.subs.map(sd=>`<span class="subtag">${sd.code}</span><span class="sl-lbl">${esc(sd.label)}</span><span class="sd">${esc(sd.desc)}</span>`).join("")}</div>`:"";
+    let hint=cat.hint?`<div class="cat-hint">💡 ${esc(cat.hint)}</div>`:"";
+    let live=cat.subs?subLiveSummary(cat,s):"";
     let html=`<div class="cat-h"><div class="cat-no">${cat.no}</div>
       <div class="cat-meta"><div class="cat-title">${cat.title}${pri}</div>
-      <div class="point">${cat.point}</div></div></div>`;
-    cat.tracks.forEach((trk,i)=>{
-      const id=tid(cat.no,i), rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id]||!!note;
+      <div class="point">${cat.point}</div>${subsLegend}${hint}${live}</div></div>`;
+    tracks.forEach(trk=>{
+      const id=trk.id, rated=s.ratings[id], note=s.notes[id]||"", op=s.openMemo[id]||!!note;
+      const star=trk.core?`<span class="core" title="店頭コア7">★</span>`:"";
+      const subb=trk.sub?`<span class="subtag">${esc(trk.sub)}</span>`:"";
       let chips=RATES.map(r=>`<button class="rb ${rated===r?'on':''}" data-r="${r}" data-id="${id}">${r}</button>`).join("");
       html+=`<div class="trk ${rated?'done':''}" id="row-${id}">
-        <div class="trk-row"><div class="trk-info"><div class="trk-t">${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
+        <div class="trk-row"><div class="trk-info"><div class="trk-t">${star}${subb}${esc(trk.t)}</div><div class="trk-a">${esc(trk.a)}</div></div>
         <div class="rate">${chips}</div></div>
         <button class="memo-toggle" data-mid="${id}">${note?'✎ メモあり':'＋ メモ'}</button>
         <div class="memo ${op?'open':''}" id="memo-${id}"><textarea data-nid="${id}" placeholder="気づいた点（艶・刺さり・空間 など）">${esc(note)}</textarea></div>
@@ -642,6 +728,11 @@ function updateMeter(){
   document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
   document.getElementById(idn).addEventListener("blur",()=>persist(true));
 });
+document.getElementById("btnCoreOnly").onclick=()=>{
+  coreOnly=!coreOnly;
+  document.getElementById("btnCoreOnly").classList.toggle("on",coreOnly);
+  renderCats();
+};
 document.getElementById("fCodec").addEventListener("change",e=>{ const s=active(); if(s){ s.codec=e.target.value; persist(true);} });
 document.getElementById("fConnSeg").addEventListener("click",e=>{
   const b=e.target.closest(".seg-btn"); if(!b)return;
@@ -732,7 +823,7 @@ function avgSym(avg){
   return "✕";
 }
 function catStat(s,cat){
-  const rs=cat.tracks.map((_,i)=>(s.ratings||{})[tid(cat.no,i)]).filter(Boolean);
+  const rs=cat.tracks.map(trk=>(s.ratings||{})[trk.id]).filter(Boolean);
   if(rs.length===0) return {avg:null,gold:0,rated:0,total:cat.tracks.length};
   const sum=rs.reduce((a,r)=>a+SCORE[r],0);
   return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:cat.tracks.length};
@@ -754,8 +845,8 @@ function makerGroups(){
 /* 複数 session をまたいでカテゴリ集計（rated=評価数, total=最大可能数） */
 function aggCatStat(sessions,cat){
   let sum=0,n=0,gold=0; const total=cat.tracks.length*sessions.length;
-  sessions.forEach(s=>cat.tracks.forEach((_,i)=>{
-    const r=(s.ratings||{})[tid(cat.no,i)];
+  sessions.forEach(s=>cat.tracks.forEach(trk=>{
+    const r=(s.ratings||{})[trk.id];
     if(r){ sum+=SCORE[r]; n++; if(r==="◎")gold++; }
   }));
   return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
