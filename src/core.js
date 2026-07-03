@@ -9,7 +9,8 @@ function loadStore(){
   if(!store.sessions) store.sessions=[];
   if(!Array.isArray(store.compareIds)) store.compareIds=[];
   /* compareMakers は未定義のまま（初回は全メーカー選択）。配列なら尊重 */
-  if(store.cmpMode!=="maker") store.cmpMode="session";
+  if(!["session","maker","list"].includes(store.cmpMode)) store.cmpMode="session";
+  if(!store.cmpList) store.cmpList="all";
   store.sessions.forEach(migrateSession); /* 旧・位置ベースID → v2.2安定ID */
 }
 /* 旧IDキー（"01-0"等）を持つ ratings/notes/openMemo を安定IDへ移し替える（冪等） */

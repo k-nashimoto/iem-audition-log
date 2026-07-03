@@ -444,6 +444,20 @@ function aggSessStat(sessions){
   sessions.forEach(s=>catalogRatingValues(s).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; }));
   return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
 }
+/* あるリストの複数sessionをまたいで、そのリストの cat 曲だけで集計 */
+function aggCatStatList(sessions,cat,listId){
+  const trs=tracksForList(listId).filter(t=>t.cat===cat.no);
+  let sum=0,n=0,gold=0; const total=trs.length*sessions.length;
+  sessions.forEach(s=>trs.forEach(trk=>{ const r=(s.ratings||{})[trk.id]; if(r){sum+=SCORE[r];n++;if(r==="◎")gold++;} }));
+  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
+}
+function aggSessStatList(sessions,listId){
+  const total=totalForList(listId)*sessions.length;
+  let sum=0,n=0,gold=0;
+  sessions.forEach(s=>catalogRatingValues(s).forEach(r=>{sum+=SCORE[r];n++;if(r==="◎")gold++;}));
+  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
+}
+function listName(id){ const l=LISTS.find(x=>x.id===id); return l?l.name:id; }
 /* 得意（最高avg）・注意（最低avg）カテゴリを抽出 */
 function makerTrend(sessions){
   const stats=CATS.map(c=>({cat:c,st:aggCatStat(sessions,c)})).filter(x=>x.st.avg!==null);
@@ -519,22 +533,41 @@ function buildGrid(cols){ // cols: [{label, sub, catStatFn, sumStat}]
 function renderCompare(){
   // モード切替ボタンの状態を反映
   document.querySelectorAll("#cmpMode .seg-btn").forEach(b=>b.classList.toggle("on",b.dataset.mode===store.cmpMode));
-  if(store.cmpMode==="maker") renderCompareMaker(); else renderCompareSession();
+  // リストフィルタ行：session/makerモードのみ表示（listモードは機種×リストで軸が異なるため非表示）
+  const lf=document.getElementById("cmpListFilter");
+  const selAll=document.getElementById("cmpSelAll"), selNone=document.getElementById("cmpSelNone");
+  if(store.cmpMode==="list"){
+    lf.style.display="none"; lf.innerHTML="";
+    selAll.style.display="none"; selNone.style.display="none";
+  }else{
+    const cl=store.cmpList||"all";
+    const chips=[{id:"all",name:"すべて"},...LISTS.map(l=>({id:l.id,name:l.name}))];
+    lf.style.display="flex";
+    lf.innerHTML=chips.map(c=>`<button type="button" class="lf ${c.id===cl?'on':''}" data-cl="${c.id}">${esc(c.name)}</button>`).join("");
+    selAll.style.display=""; selNone.style.display="";
+  }
+  if(store.cmpMode==="list") renderCompareList();
+  else if(store.cmpMode==="maker") renderCompareMaker();
+  else renderCompareSession();
 }
 
 function renderCompareSession(){
   store.compareIds=store.compareIds||[];
-  const all=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt-a.createdAt));
+  const cl=store.cmpList||"all";
+  const allSessions=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.createdAt-a.createdAt));
+  const all=cl==="all"?allSessions:allSessions.filter(s=>(s.listId||DEFAULT_LIST)===cl);
   const validIds=new Set(all.map(s=>s.id));
   store.compareIds=store.compareIds.filter(id=>validIds.has(id));
   const sels=store.compareIds;
 
-  document.getElementById("cmpInfo").textContent=`${sels.length} 機種選択中 / 全 ${all.length} 件`;
+  document.getElementById("cmpInfo").textContent=`${sels.length} 機種選択中 / 全 ${all.length} 件${cl!=="all"?"（"+listName(cl)+"）":""}`;
 
   const chipsHost=document.getElementById("cmpChips"), host=document.getElementById("cmpMatrix");
   if(all.length===0){
     chipsHost.innerHTML="";
-    host.innerHTML=`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
+    host.innerHTML=cl==="all"
+      ?`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`
+      :`<div class="cmp-empty">このリストの記録がありません。</div>`;
     return;
   }
   chipsHost.innerHTML=all.map(s=>`<div class="cmp-chip ${sels.includes(s.id)?'on':''}" data-cid="${s.id}">
@@ -548,7 +581,13 @@ function renderCompareSession(){
 }
 
 function renderCompareMaker(){
-  const groups=makerGroups();
+  const cl=store.cmpList||"all";
+  const groupsAll=makerGroups();
+  const groups={};
+  Object.keys(groupsAll).forEach(m=>{
+    const list=cl==="all"?groupsAll[m]:groupsAll[m].filter(s=>(s.listId||DEFAULT_LIST)===cl);
+    if(list.length>0) groups[m]=list;
+  });
   // メーカーを試聴数の多い順→名前順で並べる
   const names=Object.keys(groups).sort((a,b)=>(groups[b].length-groups[a].length)||a.localeCompare(b,"ja"));
   const validNames=new Set(names);
@@ -556,12 +595,14 @@ function renderCompareMaker(){
   else store.compareMakers=store.compareMakers.filter(m=>validNames.has(m)); // 既存選択は尊重（空なら空のまま）
   const sels=store.compareMakers;
 
-  document.getElementById("cmpInfo").textContent=`${sels.length} メーカー選択中 / 全 ${names.length} 社`;
+  document.getElementById("cmpInfo").textContent=`${sels.length} メーカー選択中 / 全 ${names.length} 社${cl!=="all"?"（"+listName(cl)+"）":""}`;
 
   const chipsHost=document.getElementById("cmpChips"), host=document.getElementById("cmpMatrix");
   if(names.length===0){
     chipsHost.innerHTML="";
-    host.innerHTML=`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
+    host.innerHTML=cl==="all"
+      ?`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`
+      :`<div class="cmp-empty">このリストの記録がありません。</div>`;
     return;
   }
   chipsHost.innerHTML=names.map(m=>`<div class="cmp-chip ${sels.includes(m)?'on':''}" data-cmk="${esc(m)}">
@@ -595,15 +636,55 @@ function renderCompareMaker(){
   host.innerHTML=html;
 }
 
+/* リスト別：同一機種を試聴リスト別に並べて比較（機種×リストのマトリクス/レーダー） */
+function renderCompareList(){
+  const iemKey=s=>makerKey(s)+"|"+(s.iem||"");
+  const iems={}; // key -> {label, sessions:[]}
+  store.sessions.forEach(s=>{
+    const k=iemKey(s);
+    if(!iems[k]) iems[k]={label:(s.maker?s.maker+" ":"")+(s.iem||"(機種名なし)"),sessions:[]};
+    iems[k].sessions.push(s);
+  });
+  const keys=Object.keys(iems).sort((a,b)=>(iems[b].sessions.length-iems[a].sessions.length)||iems[a].label.localeCompare(iems[b].label,"ja"));
+
+  const chipsHost=document.getElementById("cmpChips"), host=document.getElementById("cmpMatrix");
+  if(keys.length===0){
+    document.getElementById("cmpInfo").textContent="機種を選んでリスト別に比較";
+    chipsHost.innerHTML="";
+    host.innerHTML=`<div class="cmp-empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>`;
+    return;
+  }
+  if(!store.cmpIem || !iems[store.cmpIem]) store.cmpIem=keys[0]; // 未選択/無効なら先頭機種を既定表示（persistはしない）
+
+  document.getElementById("cmpInfo").textContent="機種を選んでリスト別に比較";
+  chipsHost.innerHTML=keys.map(k=>`<div class="cmp-chip ${store.cmpIem===k?'on':''}" data-ci="${esc(k)}">
+    <span class="iem">${esc(iems[k].label)}</span><span class="d">${iems[k].sessions.length}件</span>
+  </div>`).join("");
+
+  const picked=iems[store.cmpIem];
+  const byList={}; picked.sessions.forEach(s=>{ const lid=s.listId||DEFAULT_LIST; (byList[lid]=byList[lid]||[]).push(s); });
+  const cols=LISTS.filter(l=>byList[l.id]).map(l=>({
+    label:l.name, sub:`${byList[l.id].length}件`,
+    catStatFn:cat=>aggCatStatList(byList[l.id],cat,l.id), sumStat:aggSessStatList(byList[l.id],l.id)
+  }));
+  host.innerHTML=buildGrid(cols);
+}
+
 document.getElementById("btnCompare").onclick=()=>{ renderCompare(); switchView("compare"); };
 document.getElementById("btnBackCmp").onclick=()=>{ renderList(); switchView("list"); };
 document.getElementById("cmpMode").onclick=e=>{
   const b=e.target.closest("[data-mode]"); if(!b)return;
   store.cmpMode=b.dataset.mode; persist(false); renderCompare();
 };
+document.getElementById("cmpListFilter").onclick=e=>{
+  const b=e.target.closest("[data-cl]"); if(!b)return;
+  store.cmpList=b.dataset.cl; persist(false); renderCompare();
+};
 document.getElementById("cmpChips").onclick=e=>{
-  const chip=e.target.closest("[data-cid],[data-cmk]"); if(!chip)return;
-  if(store.cmpMode==="maker"){
+  const chip=e.target.closest("[data-cid],[data-cmk],[data-ci]"); if(!chip)return;
+  if(store.cmpMode==="list"){
+    store.cmpIem=chip.dataset.ci; // 単一選択
+  }else if(store.cmpMode==="maker"){
     const m=chip.dataset.cmk; store.compareMakers=store.compareMakers||[];
     const i=store.compareMakers.indexOf(m);
     if(i>=0) store.compareMakers.splice(i,1); else store.compareMakers.push(m);
@@ -615,11 +696,13 @@ document.getElementById("cmpChips").onclick=e=>{
   persist(false); renderCompare();
 };
 document.getElementById("cmpSelAll").onclick=()=>{
+  if(store.cmpMode==="list") return; // リスト別は単一選択のため無効
   if(store.cmpMode==="maker") store.compareMakers=Object.keys(makerGroups());
   else store.compareIds=store.sessions.map(s=>s.id);
   persist(false); renderCompare();
 };
 document.getElementById("cmpSelNone").onclick=()=>{
+  if(store.cmpMode==="list") return; // リスト別は単一選択のため無効
   if(store.cmpMode==="maker") store.compareMakers=[]; else store.compareIds=[];
   persist(false); renderCompare();
 };
