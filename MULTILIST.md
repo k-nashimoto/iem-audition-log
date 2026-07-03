@@ -13,25 +13,26 @@ ROADMAP フェーズ1.5「複数試聴リスト」の詳細設計。標準（全
 ### 1.1 リスト定義（`LISTS`, data.js）
 ```js
 const LISTS = [
-  { id:"std",   name:"標準（全部入り）", all:true },   // all:true = 全件（タグ無視）
+  { id:"std",   name:"標準" },   // タグ方式（導入前の厳選27曲を再現）
   { id:"vocal", name:"歌もの" },
   { id:"inst",  name:"インスト・クラシック" },
   // 将来: { id:"kpop", name:"K-POP" } 等を追加可能
 ];
 const DEFAULT_LIST = "std";
 ```
-- **標準は `all:true` の特別扱い**（全 `TRACKS` を返す）。タグ付けは不要。
+- 【実装時に変更】**標準もタグ方式（27曲）**。共有曲のリスト別差異は `ov[listId]` で上書きする（`all:true` の全件特別扱いは不採用。理由：ジャンル別リスト導入前の標準27曲をそのまま再現するため）。
 - 追加リストは `id` と `name` のみ。並び順はリスト定義順。
 
 ### 1.2 曲のタグ（`TRACKS`, data.js）
-各 track に所属リストの配列 `lists` を付与（1:N）。標準は全件なので `lists` に "std" は不要。
+各 track に所属リストの配列 `lists` を付与（1:N）。【実装時に変更】標準も含めタグで明示する（`lists` に `"std"` が無ければ標準には出ない）。
 ```js
-{ id:"first-love", cat:"01", sub:"01a", lists:["vocal"], t:"…", a:"…" }
-{ id:"time",       cat:"04", sub:"04b", lists:["inst"],  t:"…", a:"…" }
-{ id:"bad-guy",    cat:"00", core:true, lists:["vocal","inst"], … } // 装着確認は全ジャンル共通
+{ id:"first-love", cat:"01", sub:"01a", lists:["vocal","std"], t:"…", a:"…" }
+{ id:"time",       cat:"04", sub:"04b", lists:["inst","std"], ov:{std:{cat:"04",sub:"04b"}}, t:"…", a:"…" }
+{ id:"bad-guy",    cat:"00", core:true, lists:["vocal","inst","std"], … } // 装着確認は全ジャンル共通
 ```
-- `lists` 未指定の曲は**標準のみ**に所属。
-- リスト解決：`tracksForList(id)` = `list.all ? TRACKS : TRACKS.filter(t => (t.lists||[]).includes(id))`
+- `lists` 未指定の曲はどのリストにも出ない（旧版の「未指定＝標準のみ」からは変更）。
+- 同じ曲がリストごとに異なる `cat`/`sub`/`core`/`a` を持つ場合は `ov:{listId:{...}}` で上書き（標準リストが導入前の定義を再現するために使用）。
+- リスト解決：`tracksForList(id)` = `list.all ? TRACKS : TRACKS.filter(t => (t.lists||[]).includes(id))`（該当曲へ `ov[id]` をマージしてから返す）。
 
 ### 1.3 session への記録
 ```js
@@ -162,7 +163,7 @@ function goldCount(s){ return ratedInList(s).filter(r=>r==="◎").length; }
 1. **リストは作成時固定**でよいか（変更可にするか）。※既定：固定。
 2. **比較のリスト軸**：まずは「リストフィルタ（チップ絞り込み）」で足りるか。「同一機種をリスト別に並べる」比較まで初期に含めるか。
 3. **初期リスト構成**：標準／歌もの／インスト・クラシック の3つでよいか（K-POP 等さらに分けるか）。§4 の曲割当でよいか。
-4. **標準の扱い**：`all:true` の全件特別扱いでよいか。
+4. **標準の扱い**：`all:true` の全件特別扱いでよいか。【実装時に変更】不採用。標準もタグ方式（27曲）とし、共有曲のリスト別差異は `ov[listId]` で上書きする方式を採用（マルチリスト導入前の標準リストをそのまま再現するため）。
 5. **ヒーロー統計**：リスト混在の全セッション集計のままでよいか（将来リストフィルタを足すか）。
 
 ---
