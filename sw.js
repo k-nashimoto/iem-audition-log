@@ -1,4 +1,5 @@
 /* オフライン対応 SW。更新反映を優先し network-first、オフライン時はキャッシュへフォールバック。 */
+/* 注: CACHE 版はアセット変更時に更新。デプロイ再発火のための無害な微修正はここに残さない。 */
 const CACHE = "iem-audition-log-v5";
 const ASSETS = [
   "./iem-audition-log.html",
