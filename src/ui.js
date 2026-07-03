@@ -71,7 +71,8 @@ function renderHero(){
 function renderList(){
   renderHero();
   const wrap=document.getElementById("sessions");
-  const list=[...store.sessions].sort((a,b)=>(b.date||"").localeCompare(a.date||"")|| (b.createdAt-a.createdAt));
+  const upd=s=>s.updatedAt||s.createdAt||0; // 更新日時（無ければ作成日時）
+  const list=[...store.sessions].sort((a,b)=>upd(b)-upd(a)); // 更新日の新着順
   if(list.length===0){
     wrap.innerHTML='<div class="empty">まだ記録がありません。<br>「＋ 新規試聴を記録」から始めましょう。</div>';
     return;
@@ -125,6 +126,8 @@ function openSession(id){
   fillCodec(document.getElementById("fCodec"),s.codec);
   document.getElementById("fCable").value=s.cable||"";
   document.getElementById("fSummary").value=s.summary||"";
+  const lu=s.updatedAt||s.createdAt;
+  document.getElementById("lastUpdated").textContent=lu?"最終更新 "+fmtDateTime(lu):"";
   setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
   growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
@@ -193,6 +196,9 @@ function renderCats(){
 }
 
 /* textareaを内容の高さに合わせて自動拡大（全文が見える） */
+/* 編集時刻の整形（最終更新日時の表示用） */
+function fmtDateTime(ms){ const d=new Date(ms), p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes()); }
 function autoGrow(ta){ ta.style.height="auto";
   ta.style.height=(ta.scrollHeight + ta.offsetHeight - ta.clientHeight)+"px"; } /* border-box分(枠線)を加味 */
 
@@ -201,7 +207,7 @@ function bindTracks(){
   document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
     const id=b.dataset.id,r=b.dataset.r;
     if(s.ratings[id]===r)delete s.ratings[id]; else s.ratings[id]=r;
-    persist(false);
+    s.updatedAt=Date.now(); persist(false);
     const row=document.getElementById("row-"+id);
     row.querySelectorAll(".rb").forEach(x=>x.classList.toggle("on",s.ratings[id]===x.dataset.r));
     row.classList.toggle("done",!!s.ratings[id]); updateMeter();
@@ -213,7 +219,7 @@ function bindTracks(){
     if(s.openMemo[id]) autoGrow(memo.querySelector("textarea")); /* 開いた時に全文に合わせる */
   });
   document.querySelectorAll("textarea[data-nid]").forEach(ta=>{
-    ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value;
+    ta.oninput=()=>{ const id=ta.dataset.nid; s.notes[id]=ta.value; s.updatedAt=Date.now();
       const tg=document.querySelector('.memo-toggle[data-mid="'+id+'"]'); if(tg){tg.textContent=ta.value?'✎ メモを編集':'＋ メモを入力';tg.classList.toggle('has',!!ta.value);}
       autoGrow(ta); persist(false); };
     ta.onblur=()=>persist(true);
@@ -231,12 +237,12 @@ function updateMeter(){
 /* session header edits */
 ["fMaker","fIem","fDate","fSrc","fApp","fCable"].forEach(idn=>{
   const map={fMaker:"maker",fIem:"iem",fDate:"date",fSrc:"source",fApp:"app",fCable:"cable"};
-  document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; persist(false);} });
+  document.getElementById(idn).addEventListener("input",e=>{ const s=active(); if(s){ s[map[idn]]=e.target.value; s.updatedAt=Date.now(); persist(false);} });
   document.getElementById(idn).addEventListener("blur",()=>persist(true));
 });
 /* 総評メモ（session単位の自由記述・自動保存・自動リサイズ） */
 (function(){ const ta=document.getElementById("fSummary");
-  ta.addEventListener("input",()=>{ const s=active(); if(s){ s.summary=ta.value; autoGrow(ta); persist(false);} });
+  ta.addEventListener("input",()=>{ const s=active(); if(s){ s.summary=ta.value; s.updatedAt=Date.now(); autoGrow(ta); persist(false);} });
   ta.addEventListener("blur",()=>persist(true));
 })();
 document.getElementById("btnCoreOnly").onclick=()=>{
@@ -244,7 +250,7 @@ document.getElementById("btnCoreOnly").onclick=()=>{
   document.getElementById("btnCoreOnly").classList.toggle("on",coreOnly);
   renderCats();
 };
-document.getElementById("fCodec").addEventListener("change",e=>{ const s=active(); if(s){ s.codec=e.target.value; persist(true);} });
+document.getElementById("fCodec").addEventListener("change",e=>{ const s=active(); if(s){ s.codec=e.target.value; s.updatedAt=Date.now(); persist(true);} });
 document.getElementById("fConnSeg").addEventListener("click",e=>{
   const b=e.target.closest(".seg-btn"); if(!b)return;
   const s=active(); if(!s)return;
@@ -252,7 +258,7 @@ document.getElementById("fConnSeg").addEventListener("click",e=>{
   s.conn=conn;
   if(conn==="wired"){ s.codec=""; document.getElementById("fCodec").value=""; }
   else { s.cable=""; document.getElementById("fCable").value=""; }
-  setConn("f",conn); persist(true);
+  s.updatedAt=Date.now(); setConn("f",conn); persist(true);
 });
 
 /* new session modal */
@@ -284,7 +290,7 @@ document.getElementById("mStart").onclick=()=>{
     codec:conn==="wireless"?document.getElementById("mCodec").value:"",
     cable:conn==="wired"?document.getElementById("mCable").value.trim():"",
     catalogVersion:CATALOG_VERSION, /* 採点時の曲リスト版を記録 */
-    createdAt:Date.now(),ratings:{},notes:{},openMemo:{}};
+    createdAt:Date.now(),updatedAt:Date.now(),ratings:{},notes:{},openMemo:{}};
   store.sessions.push(s); persist(true); modal.classList.remove("open"); openSession(s.id);
 };
 
