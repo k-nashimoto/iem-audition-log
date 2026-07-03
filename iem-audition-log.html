@@ -100,7 +100,9 @@
   <div class="cmp-mode" id="cmpMode">
     <button type="button" class="seg-btn on" data-mode="session">機種別</button>
     <button type="button" class="seg-btn" data-mode="maker">メーカー別</button>
+    <button type="button" class="seg-btn" data-mode="list">リスト別</button>
   </div>
+  <div class="cmp-listfilter" id="cmpListFilter"></div>
   <div class="cmp-actions">
     <span class="lbl" id="cmpInfo">0 機種選択中</span>
     <button class="small-btn" id="cmpSelAll">全選択</button>
@@ -109,7 +111,7 @@
   <div id="cmpChips" class="cmp-chips"></div>
   <div id="cmpMatrix"></div>
   <footer>
-    <b>機種別</b>は選んだ試聴を、<b>メーカー別</b>はメーカーごとに全試聴を集計して比較します。各セルは平均評価（バー＋シンボル）と<b>◎数 · 評価済</b>。<br>
+    <b>機種別</b>は選んだ試聴を、<b>メーカー別</b>はメーカーごとに全試聴を集計して比較します。<b>リスト別</b>＝同一機種を試聴リスト別に並べて比較します。各セルは平均評価（バー＋シンボル）と<b>◎数 · 評価済</b>。<br>
     ◎=4, ○=3, △=2, ✕=1 として算出。未評価は「—」。メーカー別では下に<b>得意／注意</b>カテゴリの傾向も表示します。
   </footer>
 </div>

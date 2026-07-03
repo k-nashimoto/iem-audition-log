@@ -164,3 +164,18 @@ function goldCount(s){ return ratedInList(s).filter(r=>r==="◎").length; }
 3. **初期リスト構成**：標準／歌もの／インスト・クラシック の3つでよいか（K-POP 等さらに分けるか）。§4 の曲割当でよいか。
 4. **標準の扱い**：`all:true` の全件特別扱いでよいか。
 5. **ヒーロー統計**：リスト混在の全セッション集計のままでよいか（将来リストフィルタを足すか）。
+
+---
+
+## 8. 比較ビューのリスト軸（実装）
+
+段階実装計画 §6-④として実装済み。既存の機種別／メーカー別モードは温存し、以下を追加。
+
+- **`store.cmpMode`**: `"session" | "maker" | "list"`（新規）。
+- **`store.cmpList`**: 比較のリストフィルタ。`"all"`（既定）または `LISTS` の id。session/maker モードに適用（list モードでは使わない＝フィルタ行は非表示）。
+  - session モード：フィルタ後の session だけがチップ候補になる。
+  - maker モード：各メーカーの session 配列をフィルタしてから集計。フィルタ後0件のメーカーは列から除外。
+- **`store.cmpIem`**: list モード（リスト別）で選択中の機種キー（`makerKey(s)+"|"+(s.iem||"")`）。単一選択（トグルではない）。未選択/無効なら候補の先頭を既定表示（persist はしない）。
+- **リスト別モード**：選択した1機種の session 群を `listId`（未設定=標準）でグループ化し、`LISTS` の順で「その機種が持つリストのみ」を列にする。列＝リストなので、その機種のジャンル別プロファイル（歌もの/インスト/クラシックでの評価傾向）をレーダー＋マトリクスで比較できる。
+- **集計ヘルパー**（ui.js）：`aggCatStatList(sessions,cat,listId)` / `aggSessStatList(sessions,listId)` — `aggCatStat`/`aggSessStat` の「全カテゴリ全曲」基準を「指定リストの曲」基準に変えたもの。既存の `catStatFn`/`sumStat` インターフェース（`buildGrid`/`buildRadar`）はそのまま流用。
+- 機種一覧・全選択/全解除は list モードでは意味を持たないため、全選択/全解除ボタンは非表示にする。
