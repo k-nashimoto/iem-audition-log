@@ -130,6 +130,9 @@
   .btn-new:active{transform:scale(.98);}
   .btn-new b{margin-right:6px;}
   .empty{margin:30px 22px;color:var(--txt3);font-size:13px;text-align:center;line-height:1.9;}
+  /* 一覧フッター（左下にアプリバージョン） */
+  .list-foot{margin:18px 16px 8px;text-align:left;}
+  .app-ver{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--txt3);}
   .session{margin:0 16px 11px;border:none;border-radius:10px;background:var(--card);
     display:flex;align-items:stretch;overflow:hidden;transition:background .15s ease;}
   .session:hover{background:var(--card2);}
