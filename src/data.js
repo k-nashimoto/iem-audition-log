@@ -5,7 +5,7 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.3.0"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const APP_VERSION="1.3.1"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
 const CATALOG_VERSION="3.0";
 /* 複数試聴リスト（タグ方式）。標準は all:true で全 TRACKS を返す特別扱い。
    追加リストは TRACKS の lists 配列（1:N タグ）で所属を表現する。 */
