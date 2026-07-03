@@ -8,6 +8,13 @@ function updateFabNew(){
   const listActive=document.getElementById("viewList").classList.contains("active");
   fab.classList.toggle("show", listActive && !fabNewTopVisible); // 一覧かつ上部ボタンが見えない時のみ表示
 }
+/* 「最下部へ移動」FAB：詳細ビューかつ最下部でない時に表示 */
+function updateFabDown(){
+  const fab=document.getElementById("fabDown"); if(!fab)return;
+  const detailActive=document.getElementById("viewDetail").classList.contains("active");
+  const nearBottom=(window.innerHeight+window.scrollY)>=(document.documentElement.scrollHeight-80);
+  fab.classList.toggle("show", detailActive && !nearBottom);
+}
 function switchView(v){
   document.getElementById("viewList").classList.toggle("active",v==="list");
   document.getElementById("viewDetail").classList.toggle("active",v==="detail");
@@ -28,6 +35,7 @@ function switchView(v){
   window.scrollTo(0,0);
   if(v==="list") fabNewTopVisible=true; // 最上部へ戻したので上部ボタンは可視
   updateFabNew();
+  requestAnimationFrame(updateFabDown); // レイアウト確定後に判定
 }
 
 /* 一覧上部のサマリー（統計＋保存/書出注記）。カセットが増えても最初に見え、スクロールで上へ流れて消える */
@@ -342,6 +350,11 @@ document.getElementById("fabNew").onclick=()=>document.getElementById("btnNew").
   window.addEventListener("resize",checkTopBtn);
   checkTopBtn();
 })();
+
+/* 「最下部へ移動」FAB：タップで総評メモ・戻るボタンまでスムーズスクロール */
+document.getElementById("fabDown").onclick=()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:"smooth"});
+window.addEventListener("scroll",updateFabDown,{passive:true});
+window.addEventListener("resize",updateFabDown);
 
 /* pull-to-refresh：一覧ビューの最上部で下に引くとリロード */
 (function(){

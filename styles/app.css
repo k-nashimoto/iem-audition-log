@@ -66,6 +66,15 @@
   .fab-new.show{display:flex;}
   .fab-new:hover{background:var(--green2);}
   .fab-new:active{transform:scale(.94);}
+  /* 「最下部へ移動」FAB（詳細・下部中央。ナビ補助＝セカンダリ調） */
+  .fab-down{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:25;
+    display:none;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;
+    color:var(--txt);background:var(--card2);backdrop-filter:blur(8px);border:1px solid var(--btn-line);
+    font-size:22px;line-height:1;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5);
+    transition:transform .2s ease,border-color .2s ease;}
+  .fab-down.show{display:flex;}
+  .fab-down:hover{border-color:var(--txt);}
+  .fab-down:active{transform:translateX(-50%) scale(.94);}
 
   .meter{margin-top:11px;display:flex;align-items:center;gap:10px;}
   .meter-bar{flex:1;height:4px;background:var(--line);border-radius:99px;overflow:hidden;}
