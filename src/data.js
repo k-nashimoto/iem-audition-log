@@ -5,6 +5,7 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
+const APP_VERSION="1.0.0"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
 const CATALOG_VERSION="2.3";
 const CATEGORIES=[
   {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
@@ -99,4 +100,4 @@ const MAKERS=["Vision Ears","Noble Audio","64 Audio","Empire Ears","Campfire Aud
   "FatFreq","Sony","Final","Astell&Kern","Sennheiser","Shure","Westone"];
 const TOTAL=CATS.reduce((s,c)=>s+c.tracks.length,0);
 
-export { CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL };
+export { APP_VERSION, CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL };

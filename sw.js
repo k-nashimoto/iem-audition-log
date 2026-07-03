@@ -1,5 +1,5 @@
 /* オフライン対応 SW。更新反映を優先し network-first、オフライン時はキャッシュへフォールバック。 */
-const CACHE = "iem-audition-log-v4";
+const CACHE = "iem-audition-log-v5";
 const ASSETS = [
   "./iem-audition-log.html",
   "./styles/app.css",

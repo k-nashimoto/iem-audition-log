@@ -123,6 +123,8 @@
 2. `main` への PR 作成 → マージ（GitHub Pages 本番反映）
 
 ただし次は従来どおり守る：**壊れた状態は反映しない**（検証NG・未解決の疑義があれば止めて確認）、破壊的/大規模な設計変更は事前に要点を提示。CIは未設定（静的サイト）。
+- **リリース時の版更新**: ユーザー向け変更を反映する際は `src/data.js` の `APP_VERSION`（一覧左下に表示）を上げ、アセットを変更した場合は `sw.js` の `CACHE` 版も上げる（オフライン端末の更新反映用）。
+- **GitHub Pages のデプロイ失敗**（`Deployment failed, try again later.` 等の一時障害）時は、Actions の該当 run を再実行するか、main に新規コミットを積んで `pages build and deployment` を再発火させて復旧する。
 
 ## 9. 作業効率・トークン最適化の指針
 

@@ -1,4 +1,4 @@
-import { CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL } from './data.js';
+import { APP_VERSION, CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL } from './data.js';
 import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
 
 /* ---------- VIEWS ---------- */
@@ -611,4 +611,5 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 /* init */
 document.getElementById("appList").innerHTML=APPS.map(a=>`<option value="${esc(a)}"></option>`).join("");
 document.getElementById("makerList").innerHTML=MAKERS.map(m=>`<option value="${esc(m)}"></option>`).join("");
+document.getElementById("appVer").textContent="v"+APP_VERSION;
 loadStore(); renderList(); switchView("list");
