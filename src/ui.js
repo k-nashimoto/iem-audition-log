@@ -453,9 +453,39 @@ function cellHtml(st){
     <div class="cmp-sym t-${t}">${sym}</div>
     <div class="cmp-sub">${st.gold?`<b>◎${st.gold}</b> · `:''}${st.rated}/${st.total}</div>`;
 }
+/* レーダー系列色（dataviz ダーク・カテゴリカル配色。#181818面で検証済み・直接ラベル併用） */
+const RADAR_SERIES=["#3987e5","#199e70","#c98500","#9085e9","#e66767","#d95926"];
+/* 比較対象を音質7軸(01–07)でレーダー比較。00(装着)/EX(番外)は評価軸でないため除外。inline SVG（オフライン維持） */
+function buildRadar(cols){
+  const cats=CATS.filter(c=>c.no!=="00"&&c.no!=="EX"); // 01–07 の7軸
+  if(cats.length<3||cols.length===0) return "";
+  const shown=cols.slice(0,RADAR_SERIES.length), omitted=cols.length-shown.length;
+  const cx=130,cy=130,R=95,N=cats.length;
+  const ang=i=>(-90+i*360/N)*Math.PI/180;
+  const pt=(i,fr)=>[cx+R*fr*Math.cos(ang(i)),cy+R*fr*Math.sin(ang(i))];
+  const poly=(fr,fn)=>cats.map((c,i)=>{const[x,y]=pt(i,typeof fr==="function"?fr(c,i):fr);return x.toFixed(1)+","+y.toFixed(1);}).join(" ");
+  let grid="";
+  for(let lv=1;lv<=4;lv++) grid+=`<polygon points="${poly(lv/4)}" class="rdr-grid"/>`;
+  let axes="";
+  cats.forEach((c,i)=>{ const[x,y]=pt(i,1),[lx,ly]=pt(i,1.16);
+    axes+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="rdr-axis"/>`;
+    axes+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="rdr-alabel" text-anchor="middle" dominant-baseline="middle">${c.no}</text>`;
+  });
+  let series="";
+  shown.forEach((col,si)=>{ const color=RADAR_SERIES[si];
+    const pts=cats.map((cat,i)=>{ const st=col.catStatFn(cat); return pt(i,st.avg==null?0:st.avg/4); });
+    const p=pts.map(q=>q[0].toFixed(1)+","+q[1].toFixed(1)).join(" ");
+    series+=`<polygon points="${p}" fill="${color}" fill-opacity="0.12" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>`;
+    series+=pts.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.6" fill="${color}"/>`).join("");
+  });
+  const legend=shown.length>=2?`<div class="rdr-legend">`+shown.map((col,si)=>`<span class="rdr-leg"><i style="background:${RADAR_SERIES[si]}"></i>${esc(col.label)}</span>`).join("")+`</div>`:"";
+  const note=omitted>0?`<div class="rdr-note">レーダーは先頭${shown.length}件のみ表示（他${omitted}件はマトリクス参照）</div>`:"";
+  return `<div class="cmp-radar"><svg viewBox="0 0 260 260" class="rdr-svg" role="img" aria-label="カテゴリ別レーダー比較">${grid}${axes}${series}</svg>${legend}${note}</div>`;
+}
 /* グリッド本体（行ヘッダ＋カテゴリ行＋合計行）を組み立てる共通処理 */
 function buildGrid(cols){ // cols: [{label, sub, catStatFn, sumStat}]
-  let html=`<div class="cmp-scroll"><div class="cmp-grid" style="--cols:${cols.length}">`;
+  let html=buildRadar(cols); // 比較対象の上部にレーダー
+  html+=`<div class="cmp-scroll"><div class="cmp-grid" style="--cols:${cols.length}">`;
   html+=`<div class="cmp-cell cmp-head"></div>`;
   cols.forEach(c=>{
     html+=`<div class="cmp-cell cmp-head"><div class="iem">${esc(c.label)}</div><div class="d">${esc(c.sub)}</div></div>`;

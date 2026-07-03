@@ -5,7 +5,7 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.0.0"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const APP_VERSION="1.1.0"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
 const CATALOG_VERSION="2.3";
 const CATEGORIES=[
   {no:"00",title:"装着・シールの確認",pri:["最初に","seal"],
