@@ -335,10 +335,10 @@
   /* 比較レーダー（音質7軸・比較対象の上部） */
   .cmp-radar{margin:6px 16px 14px;background:var(--card);border-radius:12px;padding:14px 12px 12px;
     display:flex;flex-direction:column;align-items:center;}
-  .rdr-svg{width:100%;max-width:300px;height:auto;}
+  .rdr-svg{width:100%;max-width:332px;height:auto;}/* viewBox288に合わせ、レーダー本体(R=95)は従来と同等の実寸を維持 */
   .rdr-grid{fill:none;stroke:#2c2c2a;stroke-width:1;}
   .rdr-axis{stroke:#2c2c2a;stroke-width:1;}
-  .rdr-alabel{fill:var(--txt2);font-family:var(--mono);font-size:11px;}
+  .rdr-alabel{fill:var(--txt2);font-family:var(--jp);font-size:11px;}
   .rdr-legend{display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:10px;}
   .rdr-leg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--txt2);font-family:var(--jp);
     max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}

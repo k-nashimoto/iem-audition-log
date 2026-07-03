@@ -460,16 +460,25 @@ function buildRadar(cols){
   const cats=CATS.filter(c=>c.no!=="00"&&c.no!=="EX"); // 01–07 の7軸
   if(cats.length<3||cols.length===0) return "";
   const shown=cols.slice(0,RADAR_SERIES.length), omitted=cols.length-shown.length;
-  const cx=130,cy=130,R=95,N=cats.length;
+  const cx=144,cy=134,R=95,N=cats.length; // viewBox 288x272。R=95固定（レーダーは縮小しない）、横に余白を確保しラベル語を収める
   const ang=i=>(-90+i*360/N)*Math.PI/180;
   const pt=(i,fr)=>[cx+R*fr*Math.cos(ang(i)),cy+R*fr*Math.sin(ang(i))];
-  const poly=(fr,fn)=>cats.map((c,i)=>{const[x,y]=pt(i,typeof fr==="function"?fr(c,i):fr);return x.toFixed(1)+","+y.toFixed(1);}).join(" ");
+  const poly=fr=>cats.map((c,i)=>{const[x,y]=pt(i,fr);return x.toFixed(1)+","+y.toFixed(1);}).join(" ");
   let grid="";
   for(let lv=1;lv<=4;lv++) grid+=`<polygon points="${poly(lv/4)}" class="rdr-grid"/>`;
   let axes="";
-  cats.forEach((c,i)=>{ const[x,y]=pt(i,1),[lx,ly]=pt(i,1.16);
+  cats.forEach((c,i)=>{
+    const[x,y]=pt(i,1); const co=Math.cos(ang(i)); const lr=R+9, lx=cx+lr*co, ly=cy+lr*Math.sin(ang(i));
+    const anchor=co>0.25?"start":co<-0.25?"end":"middle";
     axes+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" class="rdr-axis"/>`;
-    axes+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="rdr-alabel" text-anchor="middle" dominant-baseline="middle">${c.no}</text>`;
+    const lbl=c.short||c.no;
+    if(lbl.indexOf("・")>=0){ // 長い語は「・」で2行に折返し（横幅を抑え枠外に出さない）
+      const a=lbl.split("・"),l1=a[0]+"・",l2=a.slice(1).join("・");
+      axes+=`<text x="${lx.toFixed(1)}" y="${(ly-6).toFixed(1)}" class="rdr-alabel" text-anchor="${anchor}">`
+        +`<tspan x="${lx.toFixed(1)}">${esc(l1)}</tspan><tspan x="${lx.toFixed(1)}" dy="12">${esc(l2)}</tspan></text>`;
+    } else {
+      axes+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="rdr-alabel" text-anchor="${anchor}" dominant-baseline="middle">${esc(lbl)}</text>`;
+    }
   });
   let series="";
   shown.forEach((col,si)=>{ const color=RADAR_SERIES[si];
@@ -480,7 +489,7 @@ function buildRadar(cols){
   });
   const legend=shown.length>=2?`<div class="rdr-legend">`+shown.map((col,si)=>`<span class="rdr-leg"><i style="background:${RADAR_SERIES[si]}"></i>${esc(col.label)}</span>`).join("")+`</div>`:"";
   const note=omitted>0?`<div class="rdr-note">レーダーは先頭${shown.length}件のみ表示（他${omitted}件はマトリクス参照）</div>`:"";
-  return `<div class="cmp-radar"><svg viewBox="0 0 260 260" class="rdr-svg" role="img" aria-label="カテゴリ別レーダー比較">${grid}${axes}${series}</svg>${legend}${note}</div>`;
+  return `<div class="cmp-radar"><svg viewBox="0 0 288 272" class="rdr-svg" role="img" aria-label="カテゴリ別レーダー比較">${grid}${axes}${series}</svg>${legend}${note}</div>`;
 }
 /* グリッド本体（行ヘッダ＋カテゴリ行＋合計行）を組み立てる共通処理 */
 function buildGrid(cols){ // cols: [{label, sub, catStatFn, sumStat}]
