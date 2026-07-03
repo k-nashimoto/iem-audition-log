@@ -1,4 +1,4 @@
-import { APP_VERSION, CATALOG_VERSION, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL } from './data.js';
+import { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL, tracksForList, catsForList, totalForList, listById } from './data.js';
 import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
 
 /* ---------- VIEWS ---------- */
@@ -103,8 +103,8 @@ function renderList(){
           ${connText(s)?`<span class="conn-chip ${s.conn}">${esc(connText(s))}</span>`:""}
         </div>`:""}
         <div class="session-stat">
-          <div class="mini-bar"><div class="mini-fill" style="width:${p/TOTAL*100}%"></div></div>
-          <span class="mini-num">${p}/${TOTAL}${g?` · <span class="g">◎${g}</span>`:""}</span>
+          <div class="mini-bar"><div class="mini-fill" style="width:${p/st.total*100}%"></div></div>
+          <span class="mini-num">${p}/${st.total}${g?` · <span class="g">◎${g}</span>`:""}</span>
         </div>
       </div>
       ${score}
@@ -136,6 +136,7 @@ function openSession(id){
   document.getElementById("fSummary").value=s.summary||"";
   const lu=s.updatedAt||s.createdAt;
   document.getElementById("lastUpdated").textContent=lu?"最終更新 "+fmtDateTime(lu):"";
+  const lb=document.getElementById("listBadge"); if(lb) lb.textContent="リスト："+listById(s.listId||DEFAULT_LIST).name;
   setConn("f",s.conn||"");
   renderCats(); updateMeter(); switchView("detail");
   growOpenMemos(); /* 表示確定後に開いているメモを全文高さへ */
@@ -164,7 +165,7 @@ function renderCats(){
   const s=active(); if(!s)return;
   s.ratings=s.ratings||{}; s.notes=s.notes||{}; s.openMemo=s.openMemo||{};
   const host=document.getElementById("cats"); host.innerHTML="";
-  CATS.forEach(cat=>{
+  catsForList(s.listId||DEFAULT_LIST).forEach(cat=>{
     const tracks = coreOnly ? cat.tracks.filter(t=>t.core) : cat.tracks;
     if(tracks.length===0) return; // コアのみ表示でコア曲が無いカテゴリは省略
     const sec=document.createElement("section"); sec.className="cat"+(cat.pri?" pri-"+cat.pri[1]:"");
@@ -237,9 +238,9 @@ function bindTracks(){
 
 function updateMeter(){
   const s=active(); if(!s)return;
-  const p=progress(s);
-  document.getElementById("count").textContent=p+" / "+TOTAL;
-  document.getElementById("fill").style.width=(p/TOTAL*100)+"%";
+  const p=progress(s), total=totalForList(s.listId||DEFAULT_LIST);
+  document.getElementById("count").textContent=p+" / "+total;
+  document.getElementById("fill").style.width=(p/total*100)+"%";
 }
 
 /* session header edits */
@@ -272,6 +273,7 @@ document.getElementById("fConnSeg").addEventListener("click",e=>{
 /* new session modal */
 const modal=document.getElementById("modal");
 document.getElementById("btnNew").onclick=()=>{
+  document.getElementById("mList").value=DEFAULT_LIST;
   document.getElementById("mMaker").value="";
   document.getElementById("mIem").value="";
   document.getElementById("mDate").value=today();
@@ -291,6 +293,7 @@ document.getElementById("mStart").onclick=()=>{
   const iem=document.getElementById("mIem").value.trim()||"(機種名なし)";
   const conn=getConn("m");
   const s={id:"s"+Date.now(),iem,maker:document.getElementById("mMaker").value.trim(),
+    listId:document.getElementById("mList").value||DEFAULT_LIST, /* 採点時に選んだ試聴リスト（作成時固定） */
     date:document.getElementById("mDate").value||today(),
     source:document.getElementById("mSrc").value.trim(),
     app:document.getElementById("mApp").value.trim(),
@@ -404,17 +407,20 @@ function avgSym(avg){
   if(avg>=1.5) return "△";
   return "✕";
 }
+/* そのsessionのリスト（listId未設定=標準）に含まれる cat の曲だけを母数にする */
 function catStat(s,cat){
-  const rs=cat.tracks.map(trk=>(s.ratings||{})[trk.id]).filter(Boolean);
-  if(rs.length===0) return {avg:null,gold:0,rated:0,total:cat.tracks.length};
+  const trs=tracksForList(s.listId||DEFAULT_LIST).filter(t=>t.cat===cat.no);
+  const rs=trs.map(trk=>(s.ratings||{})[trk.id]).filter(Boolean);
+  if(rs.length===0) return {avg:null,gold:0,rated:0,total:trs.length};
   const sum=rs.reduce((a,r)=>a+SCORE[r],0);
-  return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:cat.tracks.length};
+  return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:trs.length};
 }
 function sessStat(s){
-  const rs=catalogRatingValues(s); // 孤児評価は除外
-  if(rs.length===0) return {avg:null,gold:0,rated:0,total:TOTAL};
+  const total=totalForList(s.listId||DEFAULT_LIST);
+  const rs=catalogRatingValues(s); // 孤児・リスト外評価は除外
+  if(rs.length===0) return {avg:null,gold:0,rated:0,total};
   const sum=rs.reduce((a,r)=>a+SCORE[r],0);
-  return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total:TOTAL};
+  return {avg:sum/rs.length,gold:rs.filter(r=>r==="◎").length,rated:rs.length,total};
 }
 /* ---- メーカー別 集計 ---- */
 const NO_MAKER="(メーカー未設定)";
@@ -650,5 +656,6 @@ function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").rep
 /* init */
 document.getElementById("appList").innerHTML=APPS.map(a=>`<option value="${esc(a)}"></option>`).join("");
 document.getElementById("makerList").innerHTML=MAKERS.map(m=>`<option value="${esc(m)}"></option>`).join("");
+document.getElementById("mList").innerHTML=LISTS.map(l=>`<option value="${l.id}">${esc(l.name)}</option>`).join("");
 document.getElementById("appVer").textContent="v"+APP_VERSION;
 loadStore(); renderList(); switchView("list");

@@ -1,4 +1,4 @@
-import { OLD_ID_MAP, CATALOG_IDS, CODECS } from './data.js';
+import { OLD_ID_MAP, CATALOG_IDS, CODECS, DEFAULT_LIST, listIdSet } from './data.js';
 
 const KEY="audition-log-v1";
 
@@ -38,8 +38,10 @@ function showFlash(msg){
 }
 function active(){ return store.sessions.find(s=>s.id===store.activeId); }
 function today(){ return new Date().toISOString().slice(0,10); }
-/* 現行カタログに含まれる評価だけを対象にする（孤児=旧リストの曲は集計から除外・保持はする） */
-function catalogRatingValues(s){ const r=s.ratings||{}; return Object.keys(r).filter(k=>CATALOG_IDS.has(k)).map(k=>r[k]); }
+/* そのsessionのリスト（listId未設定=標準）に含まれる評価だけを対象にする
+   （リスト外・旧カタログの評価は集計から除外・保持はする） */
+function catalogRatingValues(s){ const r=s.ratings||{}, ids=listIdSet(s.listId||DEFAULT_LIST); return Object.keys(r).filter(k=>ids.has(k)).map(k=>r[k]); }
+/* 孤児評価＝現行カタログ全体（全リスト合算）にも存在しない旧曲の評価件数 */
 function orphanCount(s){ return Object.keys(s.ratings||{}).filter(k=>!CATALOG_IDS.has(k)).length; }
 function progress(s){ return catalogRatingValues(s).length; }
 function goldCount(s){ return catalogRatingValues(s).filter(r=>r==="◎").length; }
