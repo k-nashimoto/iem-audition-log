@@ -78,6 +78,7 @@
 - 2026-07-03: **複数試聴リストの実装方式＝「ジャンルtag付き1カタログ（案1）」に確定**（タグ方式、`MULTILIST.md`）。オーナー方針：**リストは作成時固定**／比較は**「同一機種をリスト別に並べる」比較まで初期に含める**／初期リストは**声モノ・インスト(OST)・クラシックのジャンル別**に拡張。確定ソースは **`PLAYLISTS.md`**（3リスト A声モノ / B インスト / C クラシック、全曲 Apple Music 配信確認済み）。標準（全部入り）＝A∪B∪C の全曲。装着(00)の `bad guy` は全リスト共通。→ これに伴い**カタログを刷新**（現行27曲→約49曲、`CATALOG_VERSION` を 3.0 系へ）。現行カタログにあり新カタログに無い曲（melody/idol/sun/get-lucky/ハウル/inisie/hedwig/mcml/olympic-fanfare/jokyoku 等）の既存評価は**孤児評価として保持・集計除外**。id/sub/core は Claude 側で設計（既存曲は id 据え置きで評価を継承）。
 - 2026-07-03: **複数試聴リスト（tag方式）を実装**：`LISTS`(std/vocal/inst/classic、標準は`all:true`で全件)、`TRACKS` は計50曲（bad-guyは3ジャンル共通）、`CATALOG_VERSION` 3.0。`session.listId` で作成時にリストを固定（未設定=標準）。`tracksForList`/`catsForList`/`totalForList`/`listIdSet` で集計・描画を list 相対化（`catStat`/`sessStat`/`progress`/`updateMeter`/一覧カード）。比較ビューのリスト軸（絞り込み・同一機種のリスト別比較）は次PRに先送り。
 - 2026-07-03: **比較ビューのリスト軸を実装**（MULTILIST.md §8）。`store.cmpMode` に `"list"`（リスト別）を追加し既存の session/maker は温存。(A) session/maker モードに `store.cmpList` によるリストフィルタ（チップ絞り込み、既定"all"）を追加。(B) 新モード「リスト別」は `store.cmpIem`（単一選択の機種キー）で選んだ1機種の session を `listId` でグルーピングし、列＝その機種が持つ試聴リストとしてレーダー/マトリクスを描画（`aggCatStatList`/`aggSessStatList` を追加、既存 `buildGrid`/`buildRadar` を流用）。`APP_VERSION` 1.3.0、`sw.js` CACHE v10。
+- 2026-07-03: **標準リストをマルチリスト導入前の27曲に再現**（削除5曲を復元・★コア7復元）。リスト別メタ上書き `ov[listId]` を導入し、time/Jurassic Park のカテゴリを標準とジャンル別で両立。APP 1.3.2 / CATALOG 3.1 / SW v12。
 - （以後追記）
 
 ## 未決事項（Open Questions）

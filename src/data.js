@@ -5,12 +5,13 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.3.1"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
-const CATALOG_VERSION="3.0";
-/* 複数試聴リスト（タグ方式）。標準は all:true で全 TRACKS を返す特別扱い。
-   追加リストは TRACKS の lists 配列（1:N タグ）で所属を表現する。 */
+const APP_VERSION="1.3.2"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const CATALOG_VERSION="3.1";
+/* 複数試聴リスト（タグ方式）。各リストは TRACKS の lists 配列（1:N タグ）で所属を表現。
+   標準(std)＝マルチリスト導入前の厳選27曲。ジャンル別リストと曲を共有するが、標準では
+   一部の曲のカテゴリ/サブ観点/コア/備考を ov[listId] で導入前の定義に上書きして再現する。 */
 const LISTS=[
-  {id:"std",name:"標準（全部入り）",all:true},
+  {id:"std",name:"標準",all:false},
   {id:"vocal",name:"声モノ（J-POP/K-POP）"},
   {id:"inst",name:"インスト（サントラ/OST）"},
   {id:"classic",name:"クラシック"},
@@ -48,47 +49,47 @@ const CATEGORIES=[
    point:"評価軸ではなく愛着枠。Apple Musicのみ。"},
 ];
 /* 曲リスト（source of truth）。改訂はこの配列を編集するだけ。
-   lists: 所属ジャンルリストのタグ（1:N）。標準(std)は all:true の特別扱いのため lists 不要。 */
+   lists: 所属リストのタグ（1:N）。標準(std)も含めタグで表現し、リスト別の差異は ov[listId] で上書きする。 */
 const TRACKS=[
   // 共通(装着)
-  {id:"bad-guy",cat:"00",core:true,lists:["vocal","inst","classic"],t:"bad guy — ビリー・アイリッシュ",a:"冒頭ベースの沈み・左右差・遮音。シールが甘いと真っ先に低域が痩せる"},
+  {id:"bad-guy",cat:"00",core:true,lists:["vocal","inst","classic","std"],t:"bad guy — ビリー・アイリッシュ",a:"冒頭ベースの沈み・左右差・遮音。シールが甘いと真っ先に低域が痩せる"},
   // === 声モノ vocal ===
-  {id:"first-love",cat:"01",sub:"01a",core:true,lists:["vocal"],t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"女性ボーカルの艶／録音由来のサ行を増幅するか"},
-  {id:"sore-wo-ai",cat:"01",sub:"01a",lists:["vocal"],t:"それを愛と呼ぶなら — Uru",a:"透明な声の質感・低めの声の温度"},
-  {id:"love-wins-all",cat:"01",sub:"01a",lists:["vocal"],t:"Love wins all — IU",a:"クリーンで情感的、刺さらず艶"},
+  {id:"first-love",cat:"01",sub:"01a",core:true,lists:["vocal","std"],ov:{std:{core:false}},t:"First Love (Remastered 2014) — 宇多田ヒカル",a:"女性ボーカルの艶／録音由来のサ行を増幅するか"},
+  {id:"sore-wo-ai",cat:"01",sub:"01a",lists:["vocal","std"],t:"それを愛と呼ぶなら — Uru",a:"透明な声の質感・低めの声の温度"},
+  {id:"love-wins-all",cat:"01",sub:"01a",lists:["vocal","std"],t:"Love wins all — IU",a:"クリーンで情感的、刺さらず艶"},
   {id:"bansanka",cat:"01",sub:"01a",lists:["vocal"],t:"晩餐歌 [Live at NIPPON BUDOKAN] — tuki.",a:"ライブ音源の生々しさ・会場の空気"},
   {id:"junrenai-ingot",cat:"01",sub:"01a",lists:["vocal"],t:"純恋愛のインゴット [Live at NIPPON BUDOKAN] — tuki.",a:"ライブの声の実体・余韻"},
-  {id:"kataomoi",cat:"01",sub:"01a→05b",core:true,lists:["vocal"],t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（一発録りの生声・余韻の基準曲）"},
-  {id:"melody",cat:"01",sub:"01b",lists:["vocal"],t:"メロディー — 玉置浩二",a:"男性ボーカルの艶。ア・カペラ序盤の温度、サビの艶維持"},
-  {id:"i-am",cat:"02",core:true,lists:["vocal"],t:"I AM — IVE",a:"明るく硬めのマスタリング＝刺さり負荷"},
-  {id:"odo",cat:"02",core:true,lists:["vocal"],t:"踊 — Ado",a:"叫び・エッジ・サ行で痛みが出たら即減点"},
-  {id:"easy",cat:"02",lists:["vocal"],t:"EASY — LE SSERAFIM",a:"シャープなハイハットとサ行（静かな刺さり）"},
-  {id:"ditto",cat:"03",core:true,lists:["vocal"],t:"Ditto — NewJeans",a:"控えめで締まったベースのグルーヴ"},
+  {id:"kataomoi",cat:"01",sub:"01a→05b",core:true,lists:["vocal","std"],t:"カタオモイ - From THE FIRST TAKE — Aimer",a:"部屋鳴り・ブレス・リップノイズ（一発録りの生声・余韻の基準曲）"},
+  {id:"melody",cat:"01",sub:"01b",lists:["vocal","std"],t:"メロディー — 玉置浩二",a:"男性ボーカルの艶。ア・カペラ序盤の温度、サビの艶維持"},
+  {id:"i-am",cat:"02",core:true,lists:["vocal","std"],ov:{std:{core:false}},t:"I AM — IVE",a:"明るく硬めのマスタリング＝刺さり負荷"},
+  {id:"odo",cat:"02",core:true,lists:["vocal","std"],t:"踊 — Ado",a:"叫び・エッジ・サ行で痛みが出たら即減点"},
+  {id:"easy",cat:"02",lists:["vocal","std"],t:"EASY — LE SSERAFIM",a:"シャープなハイハットとサ行（静かな刺さり）"},
+  {id:"ditto",cat:"03",core:true,lists:["vocal","std"],ov:{std:{core:false}},t:"Ditto — NewJeans",a:"控えめで締まったベースのグルーヴ"},
   {id:"kimi-wa-tennenshoku",cat:"03",lists:["vocal"],t:"君は天然色 — 川崎鷹也",a:"大滝詠一カバー(松本隆トリビュート)／シティポップの締まった低域"},
   {id:"bara-no-hana",cat:"03",lists:["vocal"],t:"ばらの花 — くるり",a:"締まったバンド低域と余白・空気感"},
   {id:"find-the-way",cat:"04",core:true,lists:["vocal"],t:"FIND THE WAY — 中島美嘉",a:"壮大な残響と厚い音の層に包まれる没入"},
   {id:"himawari-no-yakusoku",cat:"05",lists:["vocal"],t:"ひまわりの約束 — 秦基博",a:"アコギと声の胴鳴り・実体感"},
   {id:"homura",cat:"06",lists:["vocal"],t:"炎 — LiSA",a:"静→強唱の伸び、圧縮されないか"},
-  {id:"kick-back",cat:"07",core:true,lists:["vocal"],t:"KICK BACK — 米津玄師",a:"高密度・多帯域のまとまり（混濁したら✕）"},
-  {id:"gunjo",cat:"07",lists:["vocal"],t:"群青 — YOASOBI",a:"緻密なレイヤリングの分離"},
+  {id:"kick-back",cat:"07",core:true,lists:["vocal","std"],t:"KICK BACK — 米津玄師",a:"高密度・多帯域のまとまり（混濁したら✕）"},
+  {id:"gunjo",cat:"07",lists:["vocal","std"],t:"群青 — YOASOBI",a:"緻密なレイヤリングの分離"},
   {id:"ao-to-natsu",cat:"07",lists:["vocal"],t:"青と夏 — Mrs. GREEN APPLE",a:"疾走バンドの各パート分離"},
   // === インスト inst ===（01は独奏楽器の艶に読み替え・subは付けない）
   {id:"chairmans-waltz",cat:"01",lists:["inst"],t:"The Chairman's Waltz（SAYURI） — ジョン・ウィリアムズ",a:"ヴァイオリン独奏(Itzhak Perlman)の艶"},
-  {id:"time",cat:"01",core:true,lists:["inst"],t:"Time — Hans Zimmer",a:"チェロ/弦の旋律の艶と余韻（インセプション）"},
+  {id:"time",cat:"01",core:true,lists:["inst","std"],ov:{std:{cat:"04",sub:"04b",a:"音壁の包囲・サブベースの床"}},t:"Time — Hans Zimmer",a:"チェロ/弦の旋律の艶と余韻（インセプション）"},
   {id:"majo-town",cat:"02",lists:["inst"],t:"A Town with an Ocean View（魔女の宅急便） — 久石譲",a:"チェレスタ/木管のきらめきと刺さり"},
   {id:"the-battle",cat:"03",core:true,lists:["inst"],t:"The Battle（グラディエーター） — Hans Zimmer",a:"太鼓と低弦の締まった推進力"},
-  {id:"ashitaka",cat:"04",sub:"04a",core:true,lists:["inst"],t:"アシタカとサン — 久石譲",a:"雄大な管弦の包まれ感・残響"},
-  {id:"merry-go-round",cat:"04",sub:"04a",lists:["inst"],t:"Merry-Go-Round of Life（ハウル） — 久石譲",a:"ワルツの残響の後方回り込み"},
-  {id:"hedwig",cat:"04",lists:["inst"],t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"チェレスタのきらめき＋奥行き"},
-  {id:"inisie-no-uta",cat:"04",sub:"04c",lists:["inst"],t:"イニシエノウタ — NieR:Automata",a:"コーラスの360°包囲"},
-  {id:"one-summers-day",cat:"05",sub:"05a+05b",core:true,lists:["inst"],t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"ピアノの余韻・ホールの空気"},
+  {id:"ashitaka",cat:"04",sub:"04a",core:true,lists:["inst","std"],ov:{std:{core:false}},t:"アシタカとサン — 久石譲",a:"雄大な管弦の包まれ感・残響"},
+  {id:"merry-go-round",cat:"04",sub:"04a",lists:["inst","std"],t:"Merry-Go-Round of Life（ハウル） — 久石譲",a:"ワルツの残響の後方回り込み"},
+  {id:"hedwig",cat:"04",lists:["inst","std"],t:"ヘドウィグのテーマ（ハリー・ポッター） — ジョン・ウィリアムズ",a:"チェレスタのきらめき＋奥行き"},
+  {id:"inisie-no-uta",cat:"04",sub:"04c",lists:["inst","std"],t:"イニシエノウタ — NieR:Automata",a:"コーラスの360°包囲"},
+  {id:"one-summers-day",cat:"05",sub:"05a+05b",core:true,lists:["inst","std"],ov:{std:{core:false}},t:"One Summer's Day（千と千尋） — 久石譲 & ロイヤル・フィル",a:"ピアノの余韻・ホールの空気"},
   {id:"schindlers-list",cat:"05",sub:"05b",lists:["inst"],t:"Theme from Schindler's List — ジョン・ウィリアムズ",a:"独奏Vn(Perlman)の松脂感・弓の擦れ"},
-  {id:"mcml",cat:"05",sub:"05a/05b",lists:["inst"],t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"ピアノの芯と消え際"},
-  {id:"kaizoku",cat:"06",sub:"06b",core:true,lists:["inst"],t:"彼こそが海賊（パイレーツ・オブ・カリビアン） — クラウス・バデルト",a:"疾走する強奏の畳みかけ・飽和耐性"},
+  {id:"mcml",cat:"05",sub:"05a/05b",lists:["inst","std"],t:"Merry Christmas Mr. Lawrence — 坂本龍一",a:"ピアノの芯と消え際"},
+  {id:"kaizoku",cat:"06",sub:"06b",core:true,lists:["inst","std"],ov:{std:{core:false}},t:"彼こそが海賊（パイレーツ・オブ・カリビアン） — クラウス・バデルト",a:"疾走する強奏の畳みかけ・飽和耐性"},
   {id:"one-winged-angel",cat:"06",sub:"06b",lists:["inst"],t:"One-Winged Angel（FFVII） — 植松伸夫",a:"合唱＋管弦の爆発（実演盤があればLive）"},
-  {id:"olympic-fanfare",cat:"06",sub:"06a",core:true,lists:["inst"],t:"Olympic Fanfare — ジョン・ウィリアムズ",a:"金管ファンファーレの立ち上がり速度・静→強"},
+  {id:"olympic-fanfare",cat:"06",sub:"06a",core:true,lists:["inst","std"],t:"Olympic Fanfare — ジョン・ウィリアムズ",a:"金管ファンファーレの立ち上がり速度・静→強"},
   {id:"imperial-march",cat:"07",lists:["inst"],t:"The Imperial March（スター・ウォーズ） — ジョン・ウィリアムズ",a:"大編成の定位と分離"},
-  {id:"jurassic-park",cat:"07",lists:["inst"],t:"Theme from Jurassic Park — ジョン・ウィリアムズ",a:"伸びやかな主題での分離・一体感"},
+  {id:"jurassic-park",cat:"07",lists:["inst","std"],ov:{std:{cat:"06",sub:"06c",a:"漸強・ホルンの温度と艶（温度・実体型(A)も兼ねる）"}},t:"Theme from Jurassic Park — ジョン・ウィリアムズ",a:"伸びやかな主題での分離・一体感"},
   // === クラシック classic ===（01は独奏楽器の艶・subなし）
   {id:"thais-meditation",cat:"01",core:true,lists:["classic"],t:"タイスの瞑想曲 — マスネ",a:"Vn独奏の艶と弓の質感、刺さらず伸びるか"},
   {id:"chopin-nocturne",cat:"01",lists:["classic"],t:"ノクターン第2番 変ホ長調 Op.9-2 — ショパン",a:"ピアノの歌う艶と余韻"},
@@ -104,6 +105,12 @@ const TRACKS=[
   {id:"zarathustra",cat:"06",sub:"06a",core:true,lists:["classic"],t:"「ツァラトゥストラはかく語りき」冒頭 — R.シュトラウス",a:"静寂→金管・オルガン・ティンパニ"},
   {id:"overture-1812",cat:"06",sub:"06b",lists:["classic"],t:"「1812年」序曲 終結部 — チャイコフスキー",a:"大砲・鐘・金管の飽和耐性"},
   {id:"bolero",cat:"07",core:true,lists:["classic"],t:"ボレロ — ラヴェル",a:"各楽器が順に重なる分離・定位"},
+  // === 標準専用（マルチリスト導入前の標準リスト由来・std のみ） ===
+  {id:"idol",cat:"02",lists:["std"],t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
+  {id:"get-lucky",cat:"03",lists:["std"],t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
+  {id:"sun",cat:"03",core:true,lists:["std"],t:"SUN — 星野源",a:"ベースラインの音程追従性"},
+  {id:"orange",cat:"07",lists:["std"],t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"},
+  {id:"jokyoku-march",cat:"EX",lists:["std"],t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"},
 ];
 /* 描画・集計用ビュー（カテゴリ定義＋所属トラックを結合）。標準（全件）のエイリアスとして残す */
 const CATS=CATEGORIES.map(c=>({...c,tracks:TRACKS.filter(t=>t.cat===c.no)}));
@@ -111,7 +118,9 @@ const CATS=CATEGORIES.map(c=>({...c,tracks:TRACKS.filter(t=>t.cat===c.no)}));
 const CATALOG_IDS=new Set(TRACKS.map(t=>t.id));
 /* ---- 複数試聴リスト（タグ方式）ヘルパー ---- */
 function listById(id){ return LISTS.find(l=>l.id===id)||LISTS.find(l=>l.id===DEFAULT_LIST); }
-function tracksForList(id){ const l=listById(id); return l.all?TRACKS:TRACKS.filter(t=>(t.lists||[]).includes(id)); }
+/* トラックのリスト別メタ上書き ov[listId] を適用（標準で導入前の cat/sub/core/a を再現）。id は不変。 */
+function resolveTrack(t,id){ const o=t.ov&&t.ov[id]; return o?{...t,...o}:t; }
+function tracksForList(id){ const l=listById(id); const base=l.all?TRACKS:TRACKS.filter(t=>(t.lists||[]).includes(id)); return base.map(t=>resolveTrack(t,id)); }
 function catsForList(id){ const tr=tracksForList(id); return CATEGORIES.map(c=>({...c,tracks:tr.filter(t=>t.cat===c.no)})); }
 function totalForList(id){ return tracksForList(id).length; }
 function listIdSet(id){ return new Set(tracksForList(id).map(t=>t.id)); }
