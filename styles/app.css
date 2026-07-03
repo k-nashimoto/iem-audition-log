@@ -153,6 +153,8 @@
 
   /* Detail session header */
   .sess-edit{margin:14px 16px 4px;border:none;border-radius:10px;background:var(--card);padding:12px 14px;}
+  .last-updated{margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--txt3);text-align:right;}
+  .last-updated:empty{display:none;}
   .field{display:flex;align-items:center;gap:10px;margin:6px 0;}
   .field label{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--txt2);width:62px;flex:none;white-space:nowrap;text-transform:uppercase;}
   .field input{flex:1;min-width:0;background:var(--field);border:1px solid transparent;border-radius:4px;
