@@ -59,20 +59,29 @@ function renderHero(){
   const makers=new Set(ss.map(makerKey)).size;
   const iems=new Set(ss.map(s=>makerKey(s)+"|"+((s.iem||"").trim()))).size; // ユニーク機種数
   const latest=ss.map(s=>s.date).filter(Boolean).sort().slice(-1)[0]||"—";
-  let scoreSum=0,n=0,goldSum=0,best=null;
+  let scoreSum=0,n=0,goldSum=0;
+  const ranked=[]; // 集計対象（評価あり）の session をスコア順候補として集める
   ss.forEach(s=>{ const st=sessStat(s); goldSum+=st.gold;
-    if(st.avg!==null){ scoreSum+=st.avg*st.rated; n+=st.rated; if(!best||st.avg>best.avg) best={avg:st.avg,s}; } });
+    if(st.avg!==null){ scoreSum+=st.avg*st.rated; n+=st.rated; ranked.push({s,avg:st.avg}); } });
   const overall=n?scoreSum/n:null; // 全体の加重平均スコア
+  const goldRate=n?goldSum/n:null;  // ◎率＝◎ / 評価済み（延べ数でなく密度で好み一致度を見る）
   const ov=overall!==null?`<div class="hn t-${tone(overall)}">${overall.toFixed(2)}</div>`:`<div class="hn">—</div>`;
+  const gr=goldRate!==null?`<div class="hn gold">${Math.round(goldRate*100)}%</div>`:`<div class="hn">—</div>`;
   const tiles=`<div class="hero-tiles">
     <div class="htile"><div class="hn">${iems}</div><div class="hl">機種</div></div>
     <div class="htile"><div class="hn">${makers}</div><div class="hl">メーカー</div></div>
     <div class="htile">${ov}<div class="hl">平均スコア</div></div>
-    <div class="htile"><div class="hn gold">◎${goldSum}</div><div class="hl">理想評価</div></div>
+    <div class="htile">${gr}<div class="hl">◎率</div></div>
   </div>`;
-  const top=best?`<div class="hero-top"><span class="ht-lbl">総合トップ</span>
-    <span class="ht-name">${esc((best.s.maker?best.s.maker+" ":"")+(best.s.iem||"(機種名なし)"))}</span>
-    <span class="ht-avg t-${tone(best.avg)}">${avgSym(best.avg)} ${best.avg.toFixed(2)}</span></div>`:"";
+  // 総合ベスト3：機種単位（最高セッション平均で重複排除）に上位3件
+  ranked.sort((a,b)=>b.avg-a.avg);
+  const seen=new Set(), best3=[];
+  for(const x of ranked){ const k=makerKey(x.s)+"|"+((x.s.iem||"").trim());
+    if(seen.has(k))continue; seen.add(k); best3.push(x); if(best3.length===3)break; }
+  const top=best3.length?`<div class="hero-top"><span class="ht-lbl">総合ベスト3</span>
+    <ol class="ht-rank">`+best3.map(x=>`<li><span class="htr-name">${esc((x.s.maker?x.s.maker+" ":"")+(x.s.iem||"(機種名なし)"))}</span>`
+      +`<span class="ht-avg t-${tone(x.avg)}">${avgSym(x.avg)} ${x.avg.toFixed(2)}</span></li>`).join("")
+    +`</ol></div>`:"";
   host.innerHTML=`<div class="hero-head">AUDITION SUMMARY · 直近 ${esc(latest)}</div>${tiles}${top}${note}`;
 }
 
