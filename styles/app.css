@@ -109,8 +109,6 @@
   .hero-top .ht-avg{font-family:var(--mono);font-size:13px;font-weight:700;flex:none;}
   .hero-top .ht-avg.t-gold{color:var(--gold);}.hero-top .ht-avg.t-steel{color:var(--steel);}
   .hero-top .ht-avg.t-caution{color:var(--caution);}.hero-top .ht-avg.t-bad{color:var(--bad);}
-  .hero-note{font-size:11px;color:var(--txt3);line-height:1.6;margin:11px 2px 2px;}
-  .hero-note b{color:var(--txt2);font-weight:600;}
   /* 記録0件時：好みプロファイル要約カード */
   .hero-profile{background:var(--card);border-radius:8px;padding:13px 15px;}
   .hp-row{display:flex;align-items:baseline;gap:9px;margin:7px 0;font-size:12.5px;}

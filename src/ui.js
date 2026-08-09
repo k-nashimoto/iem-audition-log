@@ -44,7 +44,6 @@ function renderHero(){
   const ss=store.sessions;
   const expBtn=document.getElementById("btnExport"); // 0件時は書出を無効化
   if(expBtn){ expBtn.disabled=ss.length===0; expBtn.title=ss.length===0?"記録がありません":""; }
-  const note=`<div class="hero-note">記録はこの端末（ブラウザ）に保存されます。端末変更・バックアップは右上の<b>「書出」</b>でJSON保存、<b>「読込」</b>で復元。</div>`;
   if(ss.length===0){ // 記録0件：統計の代わりに好みプロファイル要約＋記録を促す表示
     host.innerHTML=`<div class="hero-head">LISTENING PROFILE · 評価の軸</div>
       <div class="hero-profile">
@@ -82,7 +81,7 @@ function renderHero(){
     <ol class="ht-rank">`+best3.map(x=>`<li><span class="htr-name">${esc((x.s.maker?x.s.maker+" ":"")+(x.s.iem||"(機種名なし)"))}</span>`
       +`<span class="ht-avg t-${tone(x.avg)}">${avgSym(x.avg)} ${x.avg.toFixed(2)}</span></li>`).join("")
     +`</ol></div>`:"";
-  host.innerHTML=`<div class="hero-head">AUDITION SUMMARY · 直近 ${esc(latest)}</div>${tiles}${top}${note}`;
+  host.innerHTML=`<div class="hero-head">AUDITION SUMMARY · 直近 ${esc(latest)}</div>${tiles}${top}`;
 }
 
 function renderList(){
