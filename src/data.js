@@ -5,10 +5,10 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.3.5"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
-const CATALOG_VERSION="3.1";
+const APP_VERSION="1.3.6"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const CATALOG_VERSION="3.2";
 /* 複数試聴リスト（タグ方式）。各リストは TRACKS の lists 配列（1:N タグ）で所属を表現。
-   標準(std)＝マルチリスト導入前の厳選27曲。ジャンル別リストと曲を共有するが、標準では
+   標準(std)＝マルチリスト導入前の厳選リストがベース（以後 SUN→ルパン'78/シュガーソング等の調整あり）。ジャンル別リストと曲を共有するが、標準では
    一部の曲のカテゴリ/サブ観点/コア/備考を ov[listId] で導入前の定義に上書きして再現する。 */
 const LISTS=[
   {id:"std",name:"標準",all:false},
@@ -105,11 +105,12 @@ const TRACKS=[
   {id:"zarathustra",cat:"06",sub:"06a",core:true,lists:["classic"],t:"「ツァラトゥストラはかく語りき」冒頭 — R.シュトラウス",a:"静寂→金管・オルガン・ティンパニ"},
   {id:"overture-1812",cat:"06",sub:"06b",lists:["classic"],t:"「1812年」序曲 終結部 — チャイコフスキー",a:"大砲・鐘・金管の飽和耐性"},
   {id:"bolero",cat:"07",core:true,lists:["classic"],t:"ボレロ — ラヴェル",a:"各楽器が順に重なる分離・定位"},
-  // === 標準専用（マルチリスト導入前の標準リスト由来・std のみ） ===
+  // === 標準リスト専用（std のみ） ===
   {id:"idol",cat:"02",lists:["std"],t:"アイドル — YOASOBI",a:"高密度＋高音の抜け"},
   {id:"get-lucky",cat:"03",lists:["std"],t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
-  {id:"sun",cat:"03",core:true,lists:["std"],t:"SUN — 星野源",a:"ベースラインの音程追従性"},
+  {id:"lupin-theme-78",cat:"03",core:true,lists:["std"],t:"ルパン三世のテーマ '78 — 大野雄二",a:"ウォーキングベースの推進力・音程追従性と締まったノリ"},
   {id:"orange",cat:"07",lists:["std"],t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"},
+  {id:"sugar-song-bitter-step",cat:"07",lists:["std"],t:"シュガーソングとビターステップ — UNISON SQUARE GARDEN",a:"高密度・疾走バンドの各パート分離（よく動くベースと手数）"},
   {id:"jokyoku-march",cat:"EX",lists:["std"],t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"},
 ];
 /* 描画・集計用ビュー（カテゴリ定義＋所属トラックを結合）。標準（全件）のエイリアスとして残す */

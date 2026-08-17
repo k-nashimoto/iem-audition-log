@@ -64,7 +64,7 @@
 - 各曲の `id` は**安定slug**（例 `first-love`）。rating/notes/openMemo はこの id をキーにする（旧・位置ベース `01-0` からは `OLD_ID_MAP` で冪等移行）。
 - **曲リストと評価は分離**：`TRACKS`（曲リスト＝source of truth、`cat` で所属カテゴリ参照）と `CATEGORIES`（カテゴリ定義）を持ち、`CATS` はその結合ビュー。曲の改訂は `TRACKS` を編集するだけで、評価は id 参照なので壊れない。改訂時は `CATALOG_VERSION` を上げる。
 - **孤児評価**（現行カタログに無い曲の評価）は集計から除外しつつ保持（`CATALOG_IDS` で判定、詳細画面に件数注記）。
-- **複数試聴リスト（タグ方式）**：標準（導入前の厳選27曲。リスト別差異は `ov[listId]` で上書き）に加え、声モノ/インスト/クラシックのジャンル別リストがある（`LISTS`・`tracksForList`/`catsForList`/`totalForList`）。試聴ログ作成時に選択し `session.listId` に記録（**作成時固定**、未設定=標準）。
+- **複数試聴リスト（タグ方式）**：標準（導入前ベースの厳選リスト。リスト別差異は `ov[listId]` で上書き）に加え、声モノ/インスト/クラシックのジャンル別リストがある（`LISTS`・`tracksForList`/`catsForList`/`totalForList`）。試聴ログ作成時に選択し `session.listId` に記録（**作成時固定**、未設定=標準）。
 
 ---
 
