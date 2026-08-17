@@ -80,6 +80,7 @@
 - 2026-07-03: **比較ビューのリスト軸を実装**（MULTILIST.md §8）。`store.cmpMode` に `"list"`（リスト別）を追加し既存の session/maker は温存。(A) session/maker モードに `store.cmpList` によるリストフィルタ（チップ絞り込み、既定"all"）を追加。(B) 新モード「リスト別」は `store.cmpIem`（単一選択の機種キー）で選んだ1機種の session を `listId` でグルーピングし、列＝その機種が持つ試聴リストとしてレーダー/マトリクスを描画（`aggCatStatList`/`aggSessStatList` を追加、既存 `buildGrid`/`buildRadar` を流用）。`APP_VERSION` 1.3.0、`sw.js` CACHE v10。
 - 2026-07-03: **標準リストをマルチリスト導入前の27曲に再現**（削除5曲を復元・★コア7復元）。リスト別メタ上書き `ov[listId]` を導入し、time/Jurassic Park のカテゴリを標準とジャンル別で両立。APP 1.3.2 / CATALOG 3.1 / SW v12。
 - 2026-08-17: **標準リストの SUN を2曲に差し替え**。星野源「SUN」を削除し、ルパン三世のテーマ'78（大野雄二・カテゴリ03 低域・★コア継承）とシュガーソングとビターステップ（UNISON SQUARE GARDEN・カテゴリ07 解像/分離）を標準専用で追加。★店頭コア7は維持（SUN枠→ルパン'78）。標準27→28曲。SUNの既存評価は孤児として保持・集計除外。APP 1.3.6 / CATALOG 3.2 / SW v16。
+- 2026-08-17: **標準リストから KICK BACK を外し、07枠をシュガーソングに集約**。KICK BACK（米津玄師）の `lists` を `["vocal","std"]`→`["vocal"]` に変更（標準からのみ除外・声モノは維持しコアも継続）。標準07の★店頭コアはシュガーソングとビターステップに継承（`core:true` 付与）でコア7を維持。標準28→27曲。KICK BACK はカタログ在籍のため孤児化せず、標準セッションでのみ集計対象外。APP 1.3.7 / CATALOG 3.3 / SW v17。
 - （以後追記）
 
 ## 未決事項（Open Questions）

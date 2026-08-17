@@ -5,8 +5,8 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.3.6"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
-const CATALOG_VERSION="3.2";
+const APP_VERSION="1.3.7"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const CATALOG_VERSION="3.3";
 /* 複数試聴リスト（タグ方式）。各リストは TRACKS の lists 配列（1:N タグ）で所属を表現。
    標準(std)＝マルチリスト導入前の厳選リストがベース（以後 SUN→ルパン'78/シュガーソング等の調整あり）。ジャンル別リストと曲を共有するが、標準では
    一部の曲のカテゴリ/サブ観点/コア/備考を ov[listId] で導入前の定義に上書きして再現する。 */
@@ -70,7 +70,7 @@ const TRACKS=[
   {id:"find-the-way",cat:"04",core:true,lists:["vocal"],t:"FIND THE WAY — 中島美嘉",a:"壮大な残響と厚い音の層に包まれる没入"},
   {id:"himawari-no-yakusoku",cat:"05",lists:["vocal"],t:"ひまわりの約束 — 秦基博",a:"アコギと声の胴鳴り・実体感"},
   {id:"homura",cat:"06",lists:["vocal"],t:"炎 — LiSA",a:"静→強唱の伸び、圧縮されないか"},
-  {id:"kick-back",cat:"07",core:true,lists:["vocal","std"],t:"KICK BACK — 米津玄師",a:"高密度・多帯域のまとまり（混濁したら✕）"},
+  {id:"kick-back",cat:"07",core:true,lists:["vocal"],t:"KICK BACK — 米津玄師",a:"高密度・多帯域のまとまり（混濁したら✕）"},
   {id:"gunjo",cat:"07",lists:["vocal","std"],t:"群青 — YOASOBI",a:"緻密なレイヤリングの分離"},
   {id:"ao-to-natsu",cat:"07",lists:["vocal"],t:"青と夏 — Mrs. GREEN APPLE",a:"疾走バンドの各パート分離"},
   // === インスト inst ===（01は独奏楽器の艶に読み替え・subは付けない）
@@ -110,7 +110,7 @@ const TRACKS=[
   {id:"get-lucky",cat:"03",lists:["std"],t:"Get Lucky — ダフト・パンク, Pharrell & ナイル・ロジャース",a:"キックの締まり・体がノるか"},
   {id:"lupin-theme-78",cat:"03",core:true,lists:["std"],t:"ルパン三世のテーマ '78 — 大野雄二",a:"ウォーキングベースの推進力・音程追従性と締まったノリ"},
   {id:"orange",cat:"07",lists:["std"],t:"オレンジ — SPYAIR",a:"ギター左右・シンバルの質"},
-  {id:"sugar-song-bitter-step",cat:"07",lists:["std"],t:"シュガーソングとビターステップ — UNISON SQUARE GARDEN",a:"高密度・疾走バンドの各パート分離（よく動くベースと手数）"},
+  {id:"sugar-song-bitter-step",cat:"07",core:true,lists:["std"],t:"シュガーソングとビターステップ — UNISON SQUARE GARDEN",a:"高密度・疾走バンドの各パート分離（よく動くベースと手数）"},
   {id:"jokyoku-march",cat:"EX",lists:["std"],t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"},
 ];
 /* 描画・集計用ビュー（カテゴリ定義＋所属トラックを結合）。標準（全件）のエイリアスとして残す */
