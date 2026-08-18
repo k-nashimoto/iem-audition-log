@@ -25,18 +25,6 @@ J-pop / K-pop / 映画・ゲームOST / オーケストラ。
 - **DAP**：Cayin N7+（クラスA基準。クラスA↔AB切替・ゲイン段あり）。
 - **ストリーミング**：Apple Music（メイン）、Qobuz（利用中）。
 
-## 検討経緯で確定した判断
-
-- Kronosを2台目として**選定・導入（所有）**。試聴時から映画サントラ・オーケストラの「包まれる没入」が好印象で、本命軸に最も合致した。
-- **除外/評価が下がった機種**：
-  - Phönix・STELLA … ボーカル寄りでVE10と被る＝差分を感じない
-  - Macbeth … セミオープンで音漏れ、移動不可
-  - MEST Fortune … 試聴でKronosに劣る（外見・ケーブルは良い）
-  - DITA Ventura … 自然・実在感型で"包まれる没入"ではない＋遮音弱め
-  - Subtonic Storm … 予算超・N7+で鳴らしにくい・入手難
-- **条件**：移動でも使う＝密閉・遮音必須／N7+で鳴らせること／予算〜¥693,000。
-- 「包まれる没入」が本命軸と判明 → 実質 **Kronos vs Forte Mefisto**（＋装着が合えばSony IER-Z1R）に収束し、**Kronosを選定・導入**（上記）。
-
 ## 試聴リストの設計（8カテゴリ）
 
 評価記号 ◎=理想 / ○=良 / △=惜しい / ✕=合わない。
@@ -51,20 +39,8 @@ J-pop / K-pop / 映画・ゲームOST / オーケストラ。
 - `06` ダイナミクス・強奏
 - `07` 解像・分離・一体感
 
-## 現行の試聴プレイリスト（Apple Music「試聴用プレイリスト」全22曲）
-
-- **00**：bad guy（ビリー・アイリッシュ）
-- **01**：First Love（宇多田ヒカル）／それを愛と呼ぶなら（Uru）／プロローグ（Uru）／カタオモイ - From THE FIRST TAKE（Aimer）／Love wins all（IU）
-- **02**：I AM（IVE）／踊（Ado）／EASY（LE SSERAFIM）／アイドル（YOASOBI）
-- **03**：Get Lucky（Daft Punk, Pharrell & Nile Rodgers）／丸ノ内サディスティック（椎名林檎）／Ditto（NewJeans）
-- **04**：アシタカとサン（久石譲）／Merry-Go-Round of Life（久石譲 & ロイヤル・フィル）／ヘドウィグのテーマ（John Williams）
-- **05**：One Summer's Day（久石譲 & ロイヤル・フィル）
-- **06**：彼こそが海賊（Klaus Badelt）／序曲のマーチ (V)（すぎやまこういち）
-- **07**：KICK BACK（米津玄師）／群青（YOASOBI）／オレンジ（SPYAIR）
-
 ## このプロファイルの使い方（新チャットでやりたいこと）
 
-試聴リストの選定を**さらに詰める**。上の好み・8カテゴリ・現行22曲を前提に、
-曲の入替/追加、カテゴリごとの過不足の精査、Qobuz/Apple Music での編集などを検討したい。
+試聴リストの選定を**さらに詰める**。上の好み・8カテゴリと、アプリの現行試聴リスト（source of truth は `src/data.js` の `TRACKS`。改訂ルールは `CATALOG.md`、複数リスト源は `PLAYLISTS.md`）を前提に、曲の入替/追加、カテゴリごとの過不足の精査、Qobuz/Apple Music での編集などを検討したい。
 
 （関連ツール：GitHub Pages で公開中の試聴ログアプリ `iem-audition-log`。8カテゴリ×◎○△✕で機種ごとに記録・比較できる。）
