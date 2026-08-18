@@ -41,6 +41,6 @@ J-pop / K-pop / 映画・ゲームOST / オーケストラ。
 
 ## このプロファイルの使い方（新チャットでやりたいこと）
 
-試聴リストの選定を**さらに詰める**。上の好み・8カテゴリと、アプリの現行試聴リスト（source of truth は `src/data.js` の `TRACKS`。改訂ルールは `CATALOG.md`、複数リスト源は `PLAYLISTS.md`）を前提に、曲の入替/追加、カテゴリごとの過不足の精査、Qobuz/Apple Music での編集などを検討したい。
+試聴リストの選定を**さらに詰める**。上の好み・8カテゴリと、アプリの現行試聴リスト（source of truth は `src/data.js` の `TRACKS`、改訂ルールは `CATALOG.md`）を前提に、曲の入替/追加、カテゴリごとの過不足の精査、Qobuz/Apple Music での編集などを検討したい。
 
 （関連ツール：GitHub Pages で公開中の試聴ログアプリ `iem-audition-log`。8カテゴリ×◎○△✕で機種ごとに記録・比較できる。）
