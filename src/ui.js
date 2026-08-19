@@ -1,5 +1,7 @@
-import { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, tracksForList, catsForList, totalForList, listById } from './data.js';
-import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
+/* data.js からは「リスト非依存」の CATS を安易に使わないこと（カテゴリ列挙のみに限定）。
+   曲の母数が要る集計・描画は必ず tracksForList/catsForList/totalForList を使う。 */
+import { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATS, subLabel, RATES, SCORE, CODECS, APPS, MAKERS, tracksForList, catsForList, totalForList, listById } from './data.js';
+import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, outOfListCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
 
 /* ---------- VIEWS ---------- */
 let fabNewTopVisible=true; // 上部「新規試聴を記録」ボタンが可視か
@@ -205,8 +207,9 @@ function renderCats(){
   // カタログ版・孤児評価の注記
   let info=`試聴リスト v${esc(CATALOG_VERSION)}`;
   if(s.catalogVersion && s.catalogVersion!==CATALOG_VERSION) info+=`（この記録は v${esc(s.catalogVersion)} で採点）`;
-  const oc=orphanCount(s);
-  if(oc>0) info+=`<br>⚠ 現行リストにない評価が <b>${oc}件</b> あります（旧バージョンの曲）。集計からは除外していますが、データは保持され書出にも含まれます。`;
+  const oc=orphanCount(s), ol=outOfListCount(s);
+  if(oc>0) info+=`<br>⚠ 現行カタログにない評価が <b>${oc}件</b> あります（旧バージョンの曲）。集計からは除外していますが、データは保持され書出にも含まれます。`;
+  if(ol>0) info+=`<br>⚠ この試聴リスト外の曲の評価が <b>${ol}件</b> あります。この記録の集計からは除外していますが、データは保持され、その曲を含む他のリストでは有効です。`;
   const infoEl=document.createElement("div"); infoEl.className="catalog-info"; infoEl.innerHTML=info;
   host.appendChild(infoEl);
   bindTracks();
