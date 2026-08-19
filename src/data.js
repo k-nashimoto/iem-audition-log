@@ -5,7 +5,7 @@
    評価データ（session.ratings 等）は TRACKS の id を参照するだけなので、
    曲の追加・削除・並べ替え・サブ観点付け替えをしても過去の評価は壊れない。
    曲リストを改訂したら CATALOG_VERSION を上げる（session に採点時の版を記録）。 */
-const APP_VERSION="1.3.7"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
+const APP_VERSION="1.3.8"; /* アプリのバージョン（リリースごとに更新・一覧左下に表示） */
 const CATALOG_VERSION="3.3";
 /* 複数試聴リスト（タグ方式）。各リストは TRACKS の lists 配列（1:N タグ）で所属を表現。
    標準(std)＝マルチリスト導入前の厳選リストがベース（以後 SUN→ルパン'78/シュガーソング等の調整あり）。ジャンル別リストと曲を共有するが、標準では
@@ -113,9 +113,10 @@ const TRACKS=[
   {id:"sugar-song-bitter-step",cat:"07",core:true,lists:["std"],t:"シュガーソングとビターステップ — UNISON SQUARE GARDEN",a:"高密度・疾走バンドの各パート分離（よく動くベースと手数）"},
   {id:"jokyoku-march",cat:"EX",lists:["std"],t:"序曲のマーチ (V)（ドラクエV） — すぎやまこういち",a:"金管ファンファーレと弦の堂々たる強奏"},
 ];
-/* 描画・集計用ビュー（カテゴリ定義＋所属トラックを結合）。標準（全件）のエイリアスとして残す */
+/* 描画・集計用ビュー（カテゴリ定義＋全リスト合算の所属トラック）。
+   ※リスト非依存のカテゴリ列挙用。曲の母数が要る集計では使わず catsForList()/tracksForList() を使う */
 const CATS=CATEGORIES.map(c=>({...c,tracks:TRACKS.filter(t=>t.cat===c.no)}));
-/* 現行カタログに存在する track id の集合（孤児評価の判定に使用）。標準（全件）のエイリアス */
+/* 現行カタログ全体（全リスト合算）に存在する track id の集合（孤児評価の判定に使用） */
 const CATALOG_IDS=new Set(TRACKS.map(t=>t.id));
 /* ---- 複数試聴リスト（タグ方式）ヘルパー ---- */
 function listById(id){ return LISTS.find(l=>l.id===id)||LISTS.find(l=>l.id===DEFAULT_LIST); }
@@ -151,6 +152,7 @@ const APPS=["Apple Music","Qobuz","Amazon Music","TIDAL","Spotify","YouTube Musi
 const MAKERS=["Vision Ears","Noble Audio","64 Audio","Empire Ears","Campfire Audio","Fir Audio",
   "qdc","Unique Melody","Elysian Acoustic Labs","Softears","Oriolus","JH Audio","Subtonic","Aroma Audio",
   "FatFreq","Sony","Final","Astell&Kern","Sennheiser","Shure","Westone"];
+/* 全リスト合算の総曲数（参考値・エクスポート互換用。集計は totalForList() を使う） */
 const TOTAL=CATS.reduce((s,c)=>s+c.tracks.length,0);
 
 export { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL, listById, tracksForList, catsForList, totalForList, listIdSet };
