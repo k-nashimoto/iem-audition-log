@@ -1,4 +1,4 @@
-import { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, TOTAL, tracksForList, catsForList, totalForList, listById } from './data.js';
+import { APP_VERSION, CATALOG_VERSION, LISTS, DEFAULT_LIST, CATEGORIES, TRACKS, CATS, CATALOG_IDS, SUB_LABELS, subLabel, OLD_ID_MAP, RATES, SCORE, CODECS, APPS, MAKERS, tracksForList, catsForList, totalForList, listById } from './data.js';
 import { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn } from './core.js';
 
 /* ---------- VIEWS ---------- */
@@ -439,30 +439,26 @@ function makerGroups(){
   return g; // { maker: [sessions] }
 }
 /* 複数 session をまたいでカテゴリ集計（rated=評価数, total=最大可能数） */
+/* 複数 session をまたいだ集計は、各 session を「その session のリスト」基準で数える
+   （リスト外・旧カタログの評価は除外＝機種別モードの catStat/sessStat と同じ母数になる） */
 function aggCatStat(sessions,cat){
-  let sum=0,n=0,gold=0; const total=cat.tracks.length*sessions.length;
-  sessions.forEach(s=>cat.tracks.forEach(trk=>{
-    const r=(s.ratings||{})[trk.id];
-    if(r){ sum+=SCORE[r]; n++; if(r==="◎")gold++; }
-  }));
+  let sum=0,n=0,gold=0,total=0;
+  sessions.forEach(s=>{
+    const trs=tracksForList(s.listId||DEFAULT_LIST).filter(t=>t.cat===cat.no);
+    total+=trs.length;
+    trs.forEach(trk=>{
+      const r=(s.ratings||{})[trk.id];
+      if(r){ sum+=SCORE[r]; n++; if(r==="◎")gold++; }
+    });
+  });
   return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
 }
 function aggSessStat(sessions){
-  let sum=0,n=0,gold=0; const total=TOTAL*sessions.length;
-  sessions.forEach(s=>catalogRatingValues(s).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; }));
-  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
-}
-/* あるリストの複数sessionをまたいで、そのリストの cat 曲だけで集計 */
-function aggCatStatList(sessions,cat,listId){
-  const trs=tracksForList(listId).filter(t=>t.cat===cat.no);
-  let sum=0,n=0,gold=0; const total=trs.length*sessions.length;
-  sessions.forEach(s=>trs.forEach(trk=>{ const r=(s.ratings||{})[trk.id]; if(r){sum+=SCORE[r];n++;if(r==="◎")gold++;} }));
-  return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
-}
-function aggSessStatList(sessions,listId){
-  const total=totalForList(listId)*sessions.length;
-  let sum=0,n=0,gold=0;
-  sessions.forEach(s=>catalogRatingValues(s).forEach(r=>{sum+=SCORE[r];n++;if(r==="◎")gold++;}));
+  let sum=0,n=0,gold=0,total=0;
+  sessions.forEach(s=>{
+    total+=totalForList(s.listId||DEFAULT_LIST);
+    catalogRatingValues(s).forEach(r=>{ sum+=SCORE[r]; n++; if(r==="◎")gold++; });
+  });
   return n===0?{avg:null,gold:0,rated:0,total}:{avg:sum/n,gold,rated:n,total};
 }
 function listName(id){ const l=LISTS.find(x=>x.id===id); return l?l.name:id; }
@@ -671,9 +667,10 @@ function renderCompareList(){
 
   const picked=iems[store.cmpIem];
   const byList={}; picked.sessions.forEach(s=>{ const lid=s.listId||DEFAULT_LIST; (byList[lid]=byList[lid]||[]).push(s); });
+  // 列＝リスト。各グループは同一 listId なので agg* がそのリスト基準で集計する
   const cols=LISTS.filter(l=>byList[l.id]).map(l=>({
     label:l.name, sub:`${byList[l.id].length}件`,
-    catStatFn:cat=>aggCatStatList(byList[l.id],cat,l.id), sumStat:aggSessStatList(byList[l.id],l.id)
+    catStatFn:cat=>aggCatStat(byList[l.id],cat), sumStat:aggSessStat(byList[l.id])
   }));
   host.innerHTML=buildGrid(cols);
 }
