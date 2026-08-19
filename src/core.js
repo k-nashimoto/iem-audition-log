@@ -42,8 +42,15 @@ function today(){ return new Date().toISOString().slice(0,10); }
 /* そのsessionのリスト（listId未設定=標準）に含まれる評価だけを対象にする
    （リスト外・旧カタログの評価は集計から除外・保持はする） */
 function catalogRatingValues(s){ const r=s.ratings||{}, ids=listIdSet(s.listId||DEFAULT_LIST); return Object.keys(r).filter(k=>ids.has(k)).map(k=>r[k]); }
-/* 孤児評価＝現行カタログ全体（全リスト合算）にも存在しない旧曲の評価件数 */
+/* 集計対象外の評価は2層ある。どちらもデータは保持し書出にも含む。
+   ①孤児＝現行カタログ全体（全リスト合算）にも無い旧曲 ②リスト外＝カタログにはあるが
+   そのsessionのリストに含まれない曲（他リストでは有効）。②を注記しないと「評価したのに
+   進捗が上がらない」理由がユーザーに見えないため、分けて数える。 */
 function orphanCount(s){ return Object.keys(s.ratings||{}).filter(k=>!CATALOG_IDS.has(k)).length; }
+function outOfListCount(s){
+  const ids=listIdSet(s.listId||DEFAULT_LIST);
+  return Object.keys(s.ratings||{}).filter(k=>CATALOG_IDS.has(k)&&!ids.has(k)).length;
+}
 function progress(s){ return catalogRatingValues(s).length; }
 function goldCount(s){ return catalogRatingValues(s).filter(r=>r==="◎").length; }
 /* 接続方式の表示テキスト（無線=コーデック / 有線=ケーブル） */
@@ -70,4 +77,4 @@ function getConn(prefix){
 }
 
 
-export { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, progress, goldCount, connText, fillCodec, setConn, getConn };
+export { KEY, store, loadStore, migrateSession, persist, showFlash, active, today, catalogRatingValues, orphanCount, outOfListCount, progress, goldCount, connText, fillCodec, setConn, getConn };
